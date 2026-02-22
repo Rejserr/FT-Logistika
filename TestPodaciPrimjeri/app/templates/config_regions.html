@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Regije - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Upravljanje Regijama</h1>
+<hr>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Lista regija</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-circle"></i> Dodaj
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Naziv regije</th>
+                        <th>Opis</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for regija in regije %}
+                    <tr>
+                        <td>{{ regija.regija_id }}</td>
+                        <td><strong>{{ regija.naziv_regije }}</strong></td>
+                        <td>{{ regija.opis or '-' }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editRegion({{ regija.regija_id }}, '{{ regija.naziv_regije }}', '{{ regija.opis or "" }}')">
+                                <i class="bi bi-pencil"></i> Uredi
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteRegion({{ regija.regija_id }})">
+                                <i class="bi bi-trash"></i> Obriši
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dodaj regiju</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Naziv regije *</label>
+                        <input type="text" class="form-control" name="naziv_regije" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <input type="text" class="form-control" name="opis">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Uredi regiju</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" name="regija_id" id="edit_regija_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Naziv regije *</label>
+                        <input type="text" class="form-control" name="naziv_regije" id="edit_naziv_regije" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <input type="text" class="form-control" name="opis" id="edit_opis">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Spremi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editRegion(regija_id, naziv_regije, opis) {
+    document.getElementById('edit_regija_id').value = regija_id;
+    document.getElementById('edit_naziv_regije').value = naziv_regije;
+    document.getElementById('edit_opis').value = opis || '';
+    
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function deleteRegion(regija_id) {
+    if (!confirm('Jeste li sigurni da želite obrisati regiju?')) {
+        return;
+    }
+    
+    fetch(`/api/regions/${regija_id}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri brisanju');
+        }
+    });
+}
+
+document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        naziv_regije: formData.get('naziv_regije'),
+        opis: formData.get('opis')
+    };
+    
+    fetch('/api/regions/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri dodavanju');
+        }
+    });
+});
+
+document.getElementById('editForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const regija_id = formData.get('regija_id');
+    const data = {
+        naziv_regije: formData.get('naziv_regije'),
+        opis: formData.get('opis')
+    };
+    
+    fetch(`/api/regions/${regija_id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri ažuriranju');
+        }
+    });
+});
+</script>
+{% endblock %}

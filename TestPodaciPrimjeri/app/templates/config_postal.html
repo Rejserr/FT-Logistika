@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Poštanski Brojevi - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Upravljanje Poštanskim Brojevima</h1>
+<hr>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Filteri</h5>
+    </div>
+    <div class="card-body">
+        <form id="filterForm" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Regija</label>
+                <select class="form-select" id="regija_id" name="regija_id">
+                    <option value="">Sve</option>
+                    {% for regija in regije %}
+                    <option value="{{ regija.regija_id }}">{{ regija.naziv_regije }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Pretraga mjesta</label>
+                <input type="text" class="form-control" id="mjesto_search" name="mjesto_search" placeholder="Naziv mjesta...">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="only_without_region" name="only_without_region">
+                    <label class="form-check-label" for="only_without_region">
+                        Samo bez regije
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-primary">Filtriraj</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Lista poštanskih brojeva</h5>
+        <div>
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addPostalModal">
+                <i class="bi bi-plus-circle"></i> Dodaj
+            </button>
+            <button class="btn btn-success" onclick="importCSV()">
+                <i class="bi bi-upload"></i> Import CSV
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Poštanski broj</th>
+                        <th>Mjesto</th>
+                        <th>Regija</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody id="postalTableBody">
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Učitavanje...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Postal Code Modal -->
+<div class="modal fade" id="addPostalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dodaj poštanski broj</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addPostalForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Poštanski broj *</label>
+                        <input type="text" class="form-control" id="new_postanski_broj" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mjesto</label>
+                        <input type="text" class="form-control" id="new_mjesto">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Regija</label>
+                        <select class="form-select" id="new_regija_id">
+                            <option value="">Bez regije</option>
+                            {% for regija in regije %}
+                            <option value="{{ regija.regija_id }}">{{ regija.naziv_regije }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="addPostalStatus"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zatvori</button>
+                    <button type="submit" class="btn btn-primary">Spremi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function loadPostalCodes() {
+    const regija_id = document.getElementById('regija_id').value;
+    const onlyWithoutRegion = document.getElementById('only_without_region').checked;
+    const params = new URLSearchParams();
+    if (regija_id) {
+        params.append('regija_id', regija_id);
+    }
+    if (onlyWithoutRegion && !regija_id) {
+        params.append('only_without_region', 'true');
+    }
+    
+    fetch(`/api/regions/postal-codes?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('postalTableBody');
+            tbody.innerHTML = '';
+            
+            if (data && data.length > 0) {
+                data.forEach(postal => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${postal.postanski_broj}</td>
+                        <td>${postal.mjesto || '-'}</td>
+                        <td>${postal.regija_naziv || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editPostal('${postal.postanski_broj}', ${postal.regija_id || 'null'})">
+                                <i class="bi bi-pencil"></i> Uredi
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Nema podataka</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('postalTableBody').innerHTML = 
+                '<tr><td colspan="4" class="text-center text-danger">Greška pri učitavanju podataka</td></tr>';
+        });
+}
+
+function editPostal(postanski_broj, regija_id) {
+    const newRegijaId = prompt('Unesite ID regije (ili ostavite prazno za uklanjanje):', regija_id || '');
+    
+    if (newRegijaId === null) return;
+    
+    const data = {
+        regija_id: newRegijaId ? parseInt(newRegijaId) : null
+    };
+    
+    fetch(`/api/regions/postal-codes/${postanski_broj}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            loadPostalCodes();
+        } else {
+            alert('Greška pri ažuriranju');
+        }
+    });
+}
+
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+    loadPostalCodes();
+}
+
+function importCSV() {
+    alert('CSV import funkcionalnost će biti implementirana. Koristite scripts/import_postal_codes.py za ručni import.');
+}
+
+document.getElementById('addPostalForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const postanski_broj = document.getElementById('new_postanski_broj').value.trim();
+    const mjesto = document.getElementById('new_mjesto').value.trim();
+    const regija_id_val = document.getElementById('new_regija_id').value;
+    const statusDiv = document.getElementById('addPostalStatus');
+    
+    if (!postanski_broj) {
+        statusDiv.innerHTML = '<div class="alert alert-danger">Poštanski broj je obavezan.</div>';
+        return;
+    }
+    
+    const payload = {
+        postanski_broj: postanski_broj,
+        mjesto: mjesto || null,
+        regija_id: regija_id_val ? parseInt(regija_id_val) : null
+    };
+    
+    statusDiv.innerHTML = '<div class="alert alert-info">Spremam...</div>';
+    
+    fetch('/api/regions/postal-codes', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        const data = await response.json().catch(() => ({}));
+        if (response.ok) {
+            statusDiv.innerHTML = '<div class="alert alert-success">Poštanski broj je uspješno dodan.</div>';
+            // Osvježi listu
+            loadPostalCodes();
+            // Očisti formu
+            document.getElementById('new_postanski_broj').value = '';
+            document.getElementById('new_mjesto').value = '';
+            document.getElementById('new_regija_id').value = '';
+            // Zatvori modal nakon kratkog vremena
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addPostalModal'));
+                if (modal) modal.hide();
+                statusDiv.innerHTML = '';
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">Greška: ${data.detail || 'Nepoznata greška'}</div>`;
+        }
+    })
+    .catch(error => {
+        statusDiv.innerHTML = `<div class="alert alert-danger">Greška: ${error.message}</div>`;
+    });
+});
+
+document.getElementById('filterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    loadPostalCodes();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadPostalCodes();
+});
+</script>
+{% endblock %}

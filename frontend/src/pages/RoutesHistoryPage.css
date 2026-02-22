@@ -1,0 +1,115 @@
+.routes-history-page {
+  width: 100%;
+}
+
+.filters-card {
+  margin-bottom: 20px;
+}
+
+.filters-card .card-body {
+  padding: 16px 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.routes-table-card .card-body {
+  padding: 0;
+}
+
+.routes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.routes-table th,
+.routes-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.routes-table th {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.routes-table td {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.routes-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.status-DRAFT {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.status-PLANNED {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.status-IN_PROGRESS {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.status-COMPLETED {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.status-badge.status-CANCELLED {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.loading-state,
+.empty-state {
+  padding: 48px;
+  text-align: center;
+  color: #64748b;
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+}

@@ -1,0 +1,436 @@
+/* ============================================================================
+   DataTable – Reusable table component
+   ============================================================================ */
+
+.dt-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Toolbar */
+.dt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 8px 8px 0 0;
+  flex-shrink: 0;
+}
+
+.dt-row-count {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-right: auto;
+}
+
+.dt-picker-btn {
+  padding: 4px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dt-picker-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.dt-clear-filters-btn {
+  padding: 4px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fef2f2;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dt-clear-filters-btn:hover {
+  background: #fee2e2;
+}
+
+/* Scroll wrapper */
+.dt-scroll {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Table */
+.dt-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.dt-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* TH */
+.dt-th {
+  background: #f1f5f9;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 0;
+  position: relative;
+  white-space: nowrap;
+  user-select: none;
+  text-align: left;
+}
+
+.dt-th-filtered {
+  background: #ecfdf5 !important;
+}
+
+.dt-th-check {
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px;
+  text-align: center;
+  padding: 6px 0 !important;
+}
+
+.dt-th-check input[type="checkbox"],
+.dt-td-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.dt-td-check {
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px;
+  text-align: center;
+  padding: 8px 0 !important;
+}
+
+.dt-th-actions {
+  width: auto;
+  min-width: auto;
+  position: sticky;
+  right: 0;
+  background: #f1f5f9;
+  z-index: 2;
+}
+
+.dt-th-inner {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.dt-drag-handle {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  color: #cbd5e1;
+  cursor: grab;
+  font-size: 10px;
+  letter-spacing: -2px;
+  user-select: none;
+}
+
+.dt-drag-handle:hover {
+  color: #64748b;
+}
+
+.dt-th-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 4px 6px 0;
+  gap: 2px;
+}
+
+.dt-sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  padding: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dt-sort-btn:hover {
+  color: #3b82f6;
+}
+
+.dt-sort-icon {
+  color: #3b82f6;
+  font-size: 11px;
+}
+
+.dt-filter-wrap {
+  flex-shrink: 0;
+}
+
+.dt-filter-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #cbd5e1;
+  font-size: 8px;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+
+.dt-filter-btn:hover,
+.dt-filter-btn.active {
+  color: #3b82f6;
+}
+
+/* Resize handle */
+.dt-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+}
+
+.dt-resize-handle:hover,
+.dt-resize-handle:active {
+  background: #3b82f6;
+}
+
+/* TD */
+.dt-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #0f172a;
+}
+
+.dt-td-actions {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+/* Row states */
+.dt-table tbody tr {
+  transition: background 0.1s;
+}
+
+.dt-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.dt-row-active {
+  background: #eff6ff !important;
+}
+
+/* Loading / Empty */
+.dt-loading,
+.dt-empty {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* ============================================================================
+   Column Picker dropdown
+   ============================================================================ */
+
+.dt-picker-dropdown {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 340px;
+  overflow-y: auto;
+  min-width: 200px;
+  padding: 4px 0;
+}
+
+.dt-picker-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 8px 12px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.dt-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+  transition: background 0.1s;
+}
+
+.dt-picker-item:hover {
+  background: #f8fafc;
+}
+
+/* ============================================================================
+   Filter dropdown
+   ============================================================================ */
+
+.dt-filter-dropdown {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 320px;
+  overflow-y: auto;
+  min-width: 180px;
+  padding: 4px 0;
+}
+
+.dt-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #334155;
+  transition: background 0.1s;
+}
+
+.dt-filter-item:hover {
+  background: #f8fafc;
+}
+
+.dt-filter-all {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-weight: 600;
+  color: #3b82f6;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 2px;
+}
+
+.dt-filter-more {
+  padding: 6px 12px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ============================================================================
+   Pagination
+   ============================================================================ */
+
+.dt-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 0 0 8px 8px;
+  flex-shrink: 0;
+}
+
+.dt-pagination-sizes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dt-pagination-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-right: 4px;
+}
+
+.dt-page-size-btn {
+  padding: 4px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dt-page-size-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.dt-page-size-btn.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.dt-pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dt-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dt-page-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.dt-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dt-page-info {
+  font-size: 12px;
+  color: #64748b;
+  padding: 0 8px;
+  white-space: nowrap;
+}

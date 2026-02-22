@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "FT Driver",
+    "slug": "ft-driver-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "ft-driver",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a73e8"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a73e8"
+      },
+      "package": "hr.ftlogistika.driver",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA"
+      ]
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "hr.ftlogistika.driver",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Potrebna za praćenje dostave.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Potrebna za GPS tracking u pozadini.",
+        "NSCameraUsageDescription": "Potrebna za fotografiranje dokaza dostave."
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Dozvoli FT Driver pristupu lokaciji za praćenje dostave."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Dozvoli FT Driver pristupu kameri za fotografiranje dokaza dostave."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Dozvoli FT Driver pristupu fotografijama za dokaz dostave."
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

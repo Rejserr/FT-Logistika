@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Sinkronizacija - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Sinkronizacija</h1>
+<hr>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Sinkronizacija artikala</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Prvo sinkroniziraj artikle kako bi svi nalozi imali ispravne podatke o masi, volumenu i grupama artikala.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label">Nastavi od offseta (opcionalno)</label>
+                    <input type="number" class="form-control" id="sync_start_offset_sync_page" placeholder="0" min="0" value="0">
+                    <small class="text-muted">Koristi ako je prethodna sinkronizacija stala na određenom offsetu.</small>
+                </div>
+                <button class="btn btn-success" onclick="manualSyncArtikliSyncPage()">
+                    <i class="bi bi-box-seam"></i> Sinkroniziraj artikle
+                </button>
+                <small class="text-muted d-block mt-1">(Automatski se pokreće svaku noć u 02:00)</small>
+                <div id="syncArtikliStatus" class="mt-3"></div>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Sinkronizacija pojedinačnog artikla</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Ovdje možeš ručno povući jedan artikl iz ERP-a prema njegovom <strong>artikl_uid</strong>.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label">Artikl UID</label>
+                    <input type="text" class="form-control" id="single_artikl_uid" placeholder="npr. 347132-2928">
+                </div>
+                <button class="btn btn-outline-success" onclick="syncSingleArtikl()">
+                    <i class="bi bi-plus-circle"></i> Sinkroniziraj artikl po UID-u
+                </button>
+                <div id="singleArtiklStatus" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Sinkronizacija partnera</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Ovdje možeš ponovno povući podatke o partnerima iz ERP-a na temelju naloga.
+                    Ako je naziv prazan, automatski će se popuniti iz polja <strong>ime</strong> i <strong>prezime</strong>.
+                </p>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="only_missing" checked>
+                    <label class="form-check-label" for="only_missing">
+                        Sinkroniziraj samo partnere koji nedostaju ili nemaju naziv
+                    </label>
+                </div>
+                <button class="btn btn-primary" onclick="manualSyncPartneri()">
+                    <i class="bi bi-people"></i> Sinkroniziraj partnere
+                </button>
+                <div id="syncPartnerStatus" class="mt-3"></div>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Ručna sinkronizacija naloga</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Ovdje možeš ručno povući naloge iz ERP-a za određeni datumski raspon.
+                    <strong>Napomena:</strong> Prije sinkronizacije naloga, provjeri da su artikli i partneri sinkronizirani.
+                </p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Datum od *</label>
+                        <input type="date" class="form-control" id="sync_datum_od" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Datum do *</label>
+                        <input type="date" class="form-control" id="sync_datum_do" required>
+                    </div>
+                    <div class="col-md-12">
+                        <button class="btn btn-primary" onclick="manualSyncNalozi()">
+                            <i class="bi bi-arrow-repeat"></i> Sinkroniziraj naloge
+                        </button>
+                    </div>
+                </div>
+                <div id="syncNaloziStatus" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function manualSyncArtikliSyncPage() {
+    const statusDiv = document.getElementById('syncArtikliStatus');
+    const startOffset = parseInt(document.getElementById('sync_start_offset_sync_page').value) || 0;
+    
+    statusDiv.innerHTML = `<div class="alert alert-info">
+        Sinkronizacija artikala u tijeku... (može potrajati nekoliko minuta)<br>
+        ${startOffset > 0 ? `Nastavljam od offseta: ${startOffset}` : 'Počinjem od početka'}
+        <br><small>Pratite terminal za detaljni progress!</small>
+    </div>`;
+    
+    try {
+        const response = await fetch(`/api/config/sync/artikli?start_offset=${startOffset}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            statusDiv.innerHTML = `<div class="alert alert-success">
+                Sinkronizacija artikala završena!<br>
+                ${data.message || 'Svi artikli su sinkronizirani'}<br>
+                ${startOffset > 0 ? `Nastavljeno od offseta: ${startOffset}` : ''}
+            </div>`;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">
+                Greška: ${data.detail || 'Nepoznata greška'}<br>
+                ${startOffset > 0 ? `<small>Možeš pokušati nastaviti od offseta: ${startOffset}</small>` : ''}
+            </div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">
+            Greška: ${error.message}<br>
+            ${startOffset > 0 ? `<small>Možeš pokušati nastaviti od offseta: ${startOffset}</small>` : ''}
+        </div>`;
+    }
+}
+
+async function manualSyncPartneri() {
+    const statusDiv = document.getElementById('syncPartnerStatus');
+    const onlyMissing = document.getElementById('only_missing').checked;
+    
+    statusDiv.innerHTML = `<div class="alert alert-info">
+        Sinkronizacija partnera u tijeku...<br>
+        ${onlyMissing ? 'Sinkroniziraju se samo partneri koji nedostaju ili nemaju naziv.' : 'Sinkroniziraju se svi partneri iz naloga.'}
+    </div>`;
+    
+    try {
+        const response = await fetch(`/api/config/sync/partneri?only_missing=${onlyMissing}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            statusDiv.innerHTML = `<div class="alert alert-success">
+                ${data.message || 'Sinkronizacija partnera završena!'}<br>
+                Ažurirano partnera: ${data.updated_partners || 0}<br>
+                Ukupno šifri za obradu: ${data.total_sifre || 0}
+            </div>`;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">
+                Greška: ${data.detail || 'Nepoznata greška'}
+            </div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">
+            Greška: ${error.message}
+        </div>`;
+    }
+}
+
+async function syncSingleArtikl() {
+    const statusDiv = document.getElementById('singleArtiklStatus');
+    const uidInput = document.getElementById('single_artikl_uid');
+    const artiklUid = uidInput.value.trim();
+    
+    if (!artiklUid) {
+        alert('Unesi artikl_uid koji želiš sinkronizirati');
+        return;
+    }
+    
+    statusDiv.innerHTML = `<div class="alert alert-info">
+        Sinkronizacija artikla ${artiklUid} u tijeku...
+    </div>`;
+    
+    try {
+        const response = await fetch(`/api/config/sync/artikl/${encodeURIComponent(artiklUid)}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            statusDiv.innerHTML = `<div class="alert alert-success">
+                ${data.message || 'Artikl je uspješno sinkroniziran.'}<br>
+                UID: ${data.artikl_uid || artiklUid}
+            </div>`;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">
+                Greška: ${data.detail || 'Nepoznata greška'}
+            </div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">
+            Greška: ${error.message}
+        </div>`;
+    }
+}
+
+async function manualSyncNalozi() {
+    const datumOd = document.getElementById('sync_datum_od').value;
+    const datumDo = document.getElementById('sync_datum_do').value;
+    
+    if (!datumOd || !datumDo) {
+        alert('Molimo unesite datum od i datum do');
+        return;
+    }
+    
+    const statusDiv = document.getElementById('syncNaloziStatus');
+    statusDiv.innerHTML = '<div class="alert alert-info">Sinkronizacija naloga u tijeku... (može potrajati nekoliko minuta)</div>';
+    
+    try {
+        const response = await fetch('/api/orders/sync', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                datum_od: datumOd,
+                datum_do: datumDo
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            statusDiv.innerHTML = `<div class="alert alert-success">
+                Sinkronizacija završena!<br>
+                Sinkronizirano: ${data.synced_count} naloga<br>
+                Ukupno dohvaćeno: ${data.total_fetched} naloga<br>
+                Dozvoljeno: ${data.allowed_count} naloga<br>
+                <small>Osvježi Dashboard da vidiš nove naloge.</small>
+            </div>`;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">Greška: ${data.detail || 'Nepoznata greška'}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">Greška: ${error.message}</div>`;
+    }
+}
+</script>
+{% endblock %}
+

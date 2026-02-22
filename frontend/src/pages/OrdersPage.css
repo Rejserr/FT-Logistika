@@ -1,0 +1,1109 @@
+.orders-page {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Fiksna stranica: nema skrolanja stranice, samo unutar tablice.
+   position: fixed iscrtava stranicu preko viewporta (bez sidebar-a) pa stranica ne može rasti. */
+.orders-page.orders-page--fixed {
+  position: fixed;
+  top: 0;
+  left: 240px; /* širina sidebara */
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  overflow-x: hidden; /* nikad horizontalni scroll na stranici, samo unutar tablice */
+  display: flex;
+  flex-direction: column;
+  z-index: 0;
+  padding: 32px;
+  box-sizing: border-box;
+  background: #f1f5f9;
+  width: 100%; /* ne prelazi viewport (left+right su već zadani) */
+  max-width: calc(100vw - 240px);
+}
+
+@media (max-width: 768px) {
+  .orders-page.orders-page--fixed {
+    left: 0;
+    padding: 16px;
+  }
+}
+
+.orders-tabs {
+  display: inline-flex;
+  border-bottom: 1px solid #e2e8f0;
+  margin: 12px 0 16px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.orders-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.orders-tab.active {
+  color: #0f172a;
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.orders-list-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.filters-card {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.filters-card .card-body {
+  padding: 16px 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* Kartice sa sumama označenih naloga */
+.selected-totals-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.selected-totals-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  min-height: 64px;
+}
+
+.totals-card-icon {
+  font-size: 24px;
+}
+
+.totals-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.totals-card-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.totals-card-label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.totals-create-route-btn {
+  margin-left: auto;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+}
+
+.totals-create-route-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.totals-clear-btn {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.totals-clear-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.totals-delete-btn {
+  padding: 8px 16px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fff5f5;
+  font-size: 13px;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.totals-delete-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.selected-totals-card.totals-card-highlight {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #86efac;
+}
+
+.selected-totals-card.totals-card-wms-green {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border-color: #34d399;
+}
+
+.selected-totals-card.totals-card-wms-yellow {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border-color: #fbbf24;
+}
+
+.totals-card-detail {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.orders-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(350px, 520px);
+  gap: 0;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.orders-layout.no-detail {
+  grid-template-columns: 1fr;
+}
+
+/* Resize handle između tablice i detail panela */
+.detail-resize-handle {
+  width: 8px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  z-index: 5;
+  margin: 0 -1px;
+}
+
+.detail-resize-handle:hover,
+.detail-resize-handle:active {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.detail-resize-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-resize-dots span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.detail-resize-handle:hover .detail-resize-dots span,
+.detail-resize-handle:active .detail-resize-dots span {
+  background: #3b82f6;
+}
+
+/* Prva grid ćelija (tablica) ne smije izlaziti iz dodijeljenog prostora */
+.orders-layout > .orders-table-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.orders-sync .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sync-description p {
+  margin: 0;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.sync-filters {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.sync-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.orders-table-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden; /* sadržaj (tablica) ne smije izlaziti iz kartice */
+  max-width: 100%; /* u grid ćeliji ne prelazi dodijeljenu širinu */
+}
+
+.orders-table-card .card-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.orders-table-scroll {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%; /* zauzmi cijelu širinu roditelja */
+  max-width: 100%;
+}
+
+.orders-table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orders-table th {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  background: #f8fafc;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 1px 0 0 #e2e8f0;
+}
+
+.th-with-filter {
+  position: relative;
+  vertical-align: middle;
+}
+
+.th-inner {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+
+.th-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  margin-right: 4px;
+  padding: 2px;
+  cursor: grab;
+  color: #94a3b8;
+  font-size: 10px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.th-drag-handle:hover {
+  color: #64748b;
+}
+
+.th-drag-handle:active {
+  cursor: grabbing;
+}
+
+.th-with-filter.th-dragging {
+  opacity: 0.6;
+}
+
+.th-with-filter.th-filter-active {
+  background: #dcfce7; /* svijetlo zelena */
+}
+
+.th-with-filter.th-filter-active .th-sort-label {
+  color: #166534; /* tamnije zelena za tekst */
+}
+
+.th-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+}
+
+.th-resize-handle:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.th-sort-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  cursor: pointer;
+  text-align: left;
+}
+
+.th-sort-label:hover {
+  color: #3b82f6;
+}
+
+.th-sort-icon {
+  font-size: 10px;
+  color: #3b82f6;
+}
+
+.kupac-strong {
+  font-weight: 600;
+}
+
+.th-filter-wrap {
+  position: relative;
+}
+
+.th-filter-btn {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.th-filter-btn:hover {
+  color: #64748b;
+  background: #e2e8f0;
+}
+
+.th-filter-btn.active {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.th-filter-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  max-width: 280px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+  padding: 6px 0;
+}
+
+.th-filter-dropdown .filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  color: #334155;
+}
+
+.th-filter-dropdown .filter-item:hover,
+.th-filter-dropdown .filter-all:hover {
+  background: #f1f5f9;
+}
+
+.th-filter-dropdown .filter-item input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.th-filter-dropdown .filter-more {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Column picker */
+.filter-group.column-picker-wrap {
+  position: relative;
+}
+
+.column-picker-dropdown {
+  width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 8px 0;
+}
+
+.column-picker-dropdown-portal {
+  z-index: 9999;
+}
+
+.column-picker-header {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 4px;
+}
+
+.column-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+}
+
+.column-picker-item:hover {
+  background: #f8fafc;
+}
+
+.column-picker-item input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.orders-table td {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.orders-table td.font-mono {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.orders-table td.text-right {
+  text-align: right;
+}
+
+.orders-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.orders-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.orders-table tbody tr.selected {
+  background: #eff6ff;
+}
+
+.orders-table tbody tr.checked {
+  background: #f0fdf4;
+}
+
+.orders-table tbody tr.selected.checked {
+  background: linear-gradient(90deg, #eff6ff 0%, #f0fdf4 100%);
+}
+
+/* Checkbox kolona */
+.th-checkbox,
+.td-checkbox {
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  text-align: center;
+  padding: 8px !important;
+}
+
+.th-checkbox {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #f8fafc;
+}
+
+.td-checkbox {
+  cursor: pointer;
+}
+
+.td-checkbox input,
+.th-checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #22c55e;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.status-NOVI {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.status-U_OBRADI {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.status-SPREMAN {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.status-DOSTAVLJEN {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.status-badge.status-OTKAZAN {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Order detail card */
+.order-detail-card {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.order-detail-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.order-detail-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.detail-value.font-mono {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.detail-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.detail-section h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.detail-notes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-note-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-note-item .detail-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.detail-note-item .detail-value {
+  font-size: 13px;
+  color: #0f172a;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.amount-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amount-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.amount-item.total {
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  font-weight: 600;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.items-table th,
+.items-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.items-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+
+.loading-state,
+.empty-state {
+  padding: 48px;
+  text-align: center;
+  color: #64748b;
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+}
+
+/* ============================================================================
+   Inline edit za partner polja
+   ============================================================================ */
+
+.edit-inline-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 0 0 0 6px;
+  transition: color 0.15s;
+  vertical-align: middle;
+}
+
+.edit-inline-btn:hover {
+  color: #3b82f6;
+}
+
+.edit-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.edit-inline-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  background: #fff;
+  min-width: 0;
+}
+
+.edit-inline-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.edit-inline-save,
+.edit-inline-cancel {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 3px 8px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.edit-inline-save {
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.edit-inline-save:hover {
+  background: #f0fdf4;
+}
+
+.edit-inline-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-inline-cancel {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.edit-inline-cancel:hover {
+  background: #fef2f2;
+}
+
+/* ============================================================================
+   Highlight naloga koji sadrže artikle s kriterijima (npr. Raster)
+   ============================================================================ */
+
+.orders-table tbody tr.order-row-warning {
+  background-color: #fecaca !important;
+}
+
+.orders-table tbody tr.order-row-warning:hover {
+  background-color: #fca5a5 !important;
+}
+
+.orders-table tbody tr.order-row-warning.selected {
+  background-color: #f87171 !important;
+  color: #fff;
+}
+
+/* Highlight artikla s kriterijem u detaljima naloga */
+.items-table tbody tr.item-row-warning {
+  background-color: #fecaca !important;
+}
+
+.items-table tbody tr.item-row-warning:hover {
+  background-color: #fca5a5 !important;
+}
+
+/* ============================================================
+   Mantis WMS sekcija
+   ============================================================ */
+
+.mantis-section {
+  border-top: 2px solid #e2e8f0;
+  padding-top: 12px;
+}
+
+.mantis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.mantis-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mantis-pallet-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #fff;
+}
+
+.mantis-pallet-badge.complete {
+  background-color: #16a34a;
+}
+
+.mantis-pallet-badge.partial {
+  background-color: #f59e0b;
+}
+
+.mantis-table td.mantis-product {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
+}
+
+.mantis-table td.mantis-sscc-code {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #1e40af;
+}
+
+.mantis-table td.mantis-not-packed {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.mantis-table tbody tr.mantis-sscc-even {
+  background-color: #f0f9ff;
+}
+
+.mantis-table tbody tr.mantis-sscc-odd {
+  background-color: #fefce8;
+}
+
+.mantis-table tbody tr.mantis-no-sscc {
+  background-color: #fef2f2;
+}
+
+.mantis-sync-info {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: right;
+}
+
+.mantis-empty {
+  padding: 16px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  border: 1px dashed #e2e8f0;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   WMS status kolona u tablici naloga
+   ============================================================ */
+
+.wms-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.wms-status-dot.green { background-color: #16a34a; }
+.wms-status-dot.yellow { background-color: #f59e0b; }
+.wms-status-dot.red { background-color: #dc2626; }
+.wms-status-dot.gray { background-color: #cbd5e1; }
+
+/* Pagination */
+.orders-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.7);
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.pagination-info {
+  white-space: nowrap;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.pagination-btn {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #e2e8f0;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.6);
+  color: #fff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+@media (max-width: 1200px) {
+  .orders-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .detail-resize-handle {
+    display: none;
+  }
+
+  .order-detail-card {
+    position: static;
+  }
+}

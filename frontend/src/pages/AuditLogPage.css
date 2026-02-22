@@ -1,0 +1,83 @@
+.audit-page { padding: 24px; }
+.audit-page h1 { font-size: 24px; font-weight: 600; margin: 0 0 16px; color: var(--text-primary); }
+
+.audit-filters { display: flex; gap: 12px; margin-bottom: 16px; }
+.audit-filters input {
+  padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px;
+  background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; width: 250px;
+}
+
+.audit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.audit-table th {
+  text-align: left; padding: 8px 10px; background: var(--bg-secondary);
+  color: var(--text-secondary); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);
+}
+.audit-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+.audit-table tr:hover { background: var(--bg-hover); }
+.audit-table tr.expanded { background: var(--bg-hover); }
+
+.audit-time { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+.audit-action { font-weight: 600; color: #60a5fa; }
+.audit-entity-id { font-family: monospace; font-size: 11px; }
+.audit-ip { font-family: monospace; font-size: 11px; color: var(--text-secondary); }
+
+.audit-detail-row td { padding: 12px !important; background: var(--bg-secondary); }
+
+/* Diff Table */
+.audit-diff-table { overflow-x: auto; }
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.diff-table th {
+  text-align: left;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-secondary);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.diff-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: top;
+}
+
+.diff-key {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  width: 180px;
+}
+
+.diff-val {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+/* Unchanged rows - subtle */
+.diff-row.diff-unchanged { opacity: 0.5; }
+
+/* Changed values */
+.diff-row.diff-changed .diff-key { color: #facc15; }
+.diff-old-val { color: #f87171 !important; background: rgba(248, 113, 113, 0.08); }
+.diff-new-val { color: #4ade80 !important; background: rgba(74, 222, 128, 0.1); }
+
+/* Added fields */
+.diff-row.diff-added .diff-key { color: #4ade80; }
+.diff-row.diff-added { background: rgba(74, 222, 128, 0.06); }
+
+/* Removed fields */
+.diff-row.diff-removed .diff-key { color: #f87171; }
+.diff-row.diff-removed { background: rgba(248, 113, 113, 0.06); }

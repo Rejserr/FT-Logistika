@@ -1,0 +1,39 @@
+# Secrets & environment
+.env
+.env.local
+.env.production
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (user data)
+backend/uploads/
+
+# Temp scripts
+_check_perms.py
+_add_perms.py
+
+# Logs
+*.log

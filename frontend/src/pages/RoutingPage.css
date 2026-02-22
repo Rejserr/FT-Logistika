@@ -1,0 +1,610 @@
+/* RoutingPage - full screen layout s obzirom na sidebar */
+.routing-page {
+  position: fixed;
+  top: 0;
+  left: 240px; /* širina sidebara */
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f8fafc;
+  width: auto;
+  max-width: calc(100vw - 240px);
+}
+
+/* Empty state */
+.routing-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #64748b;
+}
+
+.routing-empty-icon {
+  font-size: 64px;
+}
+
+.routing-empty-state h2 {
+  font-size: 22px;
+  color: #1e293b;
+  margin: 0;
+}
+
+.routing-empty-state p {
+  font-size: 15px;
+  margin: 0;
+}
+
+/* Toolbar */
+.routing-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.routing-toolbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.routing-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.routing-subtitle {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.routing-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.routing-select-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.routing-select-group label {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.routing-select-group select {
+  padding: 7px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.routing-select-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* Geocoding indicator */
+.geocoding-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px;
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fde68a;
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Summary row */
+.routing-summary-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.routing-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.routing-summary-card.rsc-highlight {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-color: #86efac;
+}
+
+.routing-summary-card.rsc-wms-green {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border-color: #34d399;
+}
+
+.routing-summary-card.rsc-wms-yellow {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border-color: #fbbf24;
+}
+
+.routing-summary-card.rsc-wms-red {
+  background: linear-gradient(135deg, #fef2f2, #fecaca);
+  border-color: #f87171;
+}
+
+.rsc-icon {
+  font-size: 20px;
+}
+
+.rsc-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.rsc-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.rsc-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   3-panel layout: Vozila | Nalozi | Karta
+   ============================================================ */
+.routing-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Panel 1: Vozila (lijevi, uski) */
+.routing-panel-vehicles {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: none;
+  overflow: hidden;
+}
+
+.rv-panel-header {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e2e8f0;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.rv-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 8px;
+}
+
+.rv-category {
+  margin-bottom: 8px;
+}
+
+.rv-category-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 4px 2px;
+  margin-bottom: 2px;
+}
+
+.routing-vehicle-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-size: 12px;
+}
+
+.routing-vehicle-item:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.routing-vehicle-item.selected {
+  border-color: #3b82f6;
+  background: #dbeafe;
+}
+
+.routing-vehicle-item input[type="radio"] {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.rv-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rv-name {
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rv-meta {
+  color: #64748b;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Panel 2: Nalozi (srednji, flex) */
+.routing-panel-orders {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* DataTable unutar orders panela - full height */
+.routing-panel-orders .data-table-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.routing-panel-orders .data-table-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Panel 3: Karta (desni) */
+.routing-panel-map {
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Map card full height */
+.routing-panel-map .map-view-card {
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  margin: 0;
+}
+
+.routing-panel-map .map-container {
+  min-height: 0;
+  flex: 1;
+}
+
+.routing-panel-map .leaflet-map {
+  border-radius: 0;
+}
+
+.routing-panel-map .map-overlay {
+  border-radius: 0;
+}
+
+/* Resize handles */
+.routing-resize-handle {
+  width: 8px;
+  cursor: col-resize;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  z-index: 5;
+}
+
+.routing-resize-handle:hover,
+.routing-resize-handle:active {
+  background: #93c5fd;
+}
+
+.routing-resize-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.routing-resize-dots span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.routing-resize-handle:hover .routing-resize-dots span {
+  background: #3b82f6;
+}
+
+/* Remove btn */
+.rt-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.rt-remove-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Status badges */
+.rt-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.rt-status-NEDOSTAVLJEN {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.rt-status-CEKA_RUTU {
+  background: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.rt-status-NA_RUTI {
+  background: #fefcbf;
+  color: #975a16;
+}
+
+.rt-status-DOSTAVLJEN {
+  background: #c6f6d5;
+  color: #276749;
+}
+
+/* Modal za raspored */
+.routing-raspored-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.routing-raspored-modal h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.raspored-modal-desc {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.raspored-modal-field {
+  margin-bottom: 16px;
+}
+
+.raspored-modal-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.raspored-modal-field input[type="date"] {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.raspored-modal-field input[type="date"]:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.raspored-modal-info {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.raspored-modal-wms-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.raspored-modal-wms-warning .wms-warn-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.routing-warning-hint {
+  color: #e53e3e;
+  font-size: 0.82rem;
+  font-weight: 600;
+  animation: pulse-hint 1.5s infinite;
+  white-space: nowrap;
+}
+
+@keyframes pulse-hint {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .routing-main {
+    flex-direction: column;
+  }
+
+  .routing-panel-vehicles,
+  .routing-panel-orders,
+  .routing-panel-map {
+    width: 100% !important;
+  }
+
+  .routing-panel-vehicles {
+    max-height: 120px;
+    flex-direction: row;
+  }
+
+  .rv-panel-scroll {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 8px;
+  }
+
+  .routing-panel-orders {
+    max-height: 50vh;
+  }
+
+  .routing-panel-map {
+    min-height: 300px;
+  }
+
+  .routing-resize-handle {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .routing-page {
+    left: 0;
+    max-width: 100vw;
+  }
+
+  .routing-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .routing-toolbar-right {
+    flex-wrap: wrap;
+  }
+
+  .routing-summary-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* WMS status dot u tablici */
+.wms-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.wms-status-dot.green { background-color: #16a34a; }
+.wms-status-dot.yellow { background-color: #f59e0b; }
+.wms-status-dot.red { background-color: #dc2626; }
+.wms-status-dot.gray { background-color: #cbd5e1; }

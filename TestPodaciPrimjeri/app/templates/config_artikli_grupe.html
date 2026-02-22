@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}Grupe Artikala - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Konfiguracija Grupa Artikala</h1>
+<hr>
+
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>Info:</strong> Ovdje možete konfigurirati koje grupe artikala se šalju u OptimoRoute. 
+    Ako grupa artikala nije konfigurirana, pretpostavlja se da se šalje (default: DA).
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Lista konfiguriranih grupa artikala</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-circle"></i> Dodaj
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Grupa artikala</th>
+                        <th>Šalje se u OptimoRoute</th>
+                        <th>Opis</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for config in configs %}
+                    <tr>
+                        <td><strong>{{ config.grupa_artikla_naziv }}</strong></td>
+                        <td>
+                            {% if config.salje_se_u_optimo %}
+                            <span class="badge bg-success">DA</span>
+                            {% else %}
+                            <span class="badge bg-danger">NE</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ config.opis or '-' }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning btn-edit-config" 
+                                    data-grupa-naziv="{{ config.grupa_artikla_naziv }}"
+                                    data-salje-se="{{ 'true' if config.salje_se_u_optimo else 'false' }}"
+                                    data-opis="{{ config.opis or '' }}">
+                                <i class="bi bi-pencil"></i> Uredi
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-delete-config" 
+                                    data-grupa-naziv="{{ config.grupa_artikla_naziv }}">
+                                <i class="bi bi-trash"></i> Obriši
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not configs %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Nema konfiguriranih grupa artikala</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dodaj konfiguraciju grupe artikala</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Grupa artikala *</label>
+                        <select class="form-select" name="grupa_artikla_naziv" id="add_grupa_artikla_naziv" required>
+                            <option value="">-- Odaberi grupu artikala --</option>
+                            {% for grupa in available_grupe %}
+                            <option value="{{ grupa.grupa_artikla_naziv }}">{{ grupa.grupa_artikla_naziv }} ({{ grupa.grupa_artikla }})</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Odaberi grupu artikala koja još nije konfigurirana</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="salje_se_u_optimo" id="add_salje_se_u_optimo" checked>
+                            <label class="form-check-label" for="add_salje_se_u_optimo">Šalje se u OptimoRoute</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <input type="text" class="form-control" name="opis" id="add_opis" placeholder="Opcionalni opis...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Uredi konfiguraciju grupe artikala</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" name="grupa_artikla_naziv" id="edit_grupa_artikla_naziv">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Grupa artikala</label>
+                        <input type="text" class="form-control" id="edit_grupa_artikla_naziv_display" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="salje_se_u_optimo" id="edit_salje_se_u_optimo">
+                            <label class="form-check-label" for="edit_salje_se_u_optimo">Šalje se u OptimoRoute</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <input type="text" class="form-control" name="opis" id="edit_opis" placeholder="Opcionalni opis...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Spremi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Event delegation za edit i delete gumbove
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-edit-config')) {
+            const btn = e.target.closest('.btn-edit-config');
+            const grupaNaziv = btn.getAttribute('data-grupa-naziv');
+            const saljeSe = btn.getAttribute('data-salje-se') === 'true';
+            const opis = btn.getAttribute('data-opis') || '';
+            
+            editConfig(grupaNaziv, saljeSe, opis);
+        }
+        
+        if (e.target.closest('.btn-delete-config')) {
+            const btn = e.target.closest('.btn-delete-config');
+            const grupaNaziv = btn.getAttribute('data-grupa-naziv');
+            deleteConfig(grupaNaziv);
+        }
+    });
+});
+
+function editConfig(grupa_artikla_naziv, salje_se_u_optimo, opis) {
+    document.getElementById('edit_grupa_artikla_naziv').value = grupa_artikla_naziv;
+    document.getElementById('edit_grupa_artikla_naziv_display').value = grupa_artikla_naziv;
+    document.getElementById('edit_salje_se_u_optimo').checked = salje_se_u_optimo;
+    document.getElementById('edit_opis').value = opis;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
+}
+
+function deleteConfig(grupa_artikla_naziv) {
+    if (!confirm('Jeste li sigurni da želite obrisati konfiguraciju za grupu artikala "' + grupa_artikla_naziv + '"?')) {
+        return;
+    }
+    
+    fetch(`/api/config/artikli-grupe/${encodeURIComponent(grupa_artikla_naziv)}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            response.json().then(data => {
+                alert('Greška pri brisanju: ' + (data.detail || 'Nepoznata greška'));
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Greška pri brisanju');
+    });
+}
+
+document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        grupa_artikla_naziv: formData.get('grupa_artikla_naziv'),
+        salje_se_u_optimo: formData.get('salje_se_u_optimo') === 'on',
+        opis: formData.get('opis') || null
+    };
+    
+    fetch('/api/config/artikli-grupe', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            return response.json().then(err => {
+                throw new Error(err.detail || 'Nepoznata greška');
+            });
+        }
+    })
+    .then(newConfig => {
+        // Zatvori modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
+        modal.hide();
+        
+        // Dodaj novi red u tablicu
+        const tbody = document.querySelector('table tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${escapeHtml(newConfig.grupa_artikla_naziv)}</strong></td>
+            <td>
+                ${newConfig.salje_se_u_optimo 
+                    ? '<span class="badge bg-success">DA</span>' 
+                    : '<span class="badge bg-danger">NE</span>'}
+            </td>
+            <td>${escapeHtml(newConfig.opis || '-')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-edit-config" 
+                                data-grupa-naziv="${escapeHtml(newConfig.grupa_artikla_naziv)}"
+                                data-salje-se="${newConfig.salje_se_u_optimo ? 'true' : 'false'}"
+                                data-opis="${escapeHtml(newConfig.opis || '')}">
+                            <i class="bi bi-pencil"></i> Uredi
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-delete-config" 
+                                data-grupa-naziv="${escapeHtml(newConfig.grupa_artikla_naziv)}">
+                            <i class="bi bi-trash"></i> Obriši
+                        </button>
+                    </td>
+        `;
+        
+        // Ukloni "Nema konfiguriranih" poruku ako postoji
+        const emptyRow = tbody.querySelector('tr td[colspan="4"]');
+        if (emptyRow) {
+            emptyRow.parentElement.remove();
+        }
+        
+        tbody.appendChild(tr);
+        
+        // Ukloni opciju iz dropdown-a
+        const select = document.getElementById('add_grupa_artikla_naziv');
+        const option = select.querySelector(`option[value="${escapeHtml(newConfig.grupa_artikla_naziv)}"]`);
+        if (option) {
+            option.remove();
+        }
+        
+        // Resetiraj formu
+        e.target.reset();
+        
+        // Prikaži poruku o uspjehu
+        showSuccessMessage('Grupa artikala uspješno dodana!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Greška pri dodavanju: ' + error.message);
+    });
+});
+
+window.escapeHtml = function(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+window.showSuccessMessage = function(message) {
+    // Kreiraj toast poruku
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-white bg-success border-0';
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    // Dodaj toast container ako ne postoji
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1055';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Ukloni toast nakon što se sakrije
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+document.getElementById('editForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const grupa_artikla_naziv = formData.get('grupa_artikla_naziv');
+    const data = {
+        salje_se_u_optimo: formData.get('salje_se_u_optimo') === 'on',
+        opis: formData.get('opis') || null
+    };
+    
+    fetch(`/api/config/artikli-grupe/${encodeURIComponent(grupa_artikla_naziv)}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            return response.json().then(err => {
+                throw new Error(err.detail || 'Nepoznata greška');
+            });
+        }
+    })
+    .then(updatedConfig => {
+        // Zatvori modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+        modal.hide();
+        
+        // Ažuriraj red u tablici
+        const rows = document.querySelectorAll('table tbody tr');
+        for (const row of rows) {
+            const firstCell = row.querySelector('td strong');
+            if (firstCell && firstCell.textContent.trim() === updatedConfig.grupa_artikla_naziv) {
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(updatedConfig.grupa_artikla_naziv)}</strong></td>
+                    <td>
+                        ${updatedConfig.salje_se_u_optimo 
+                            ? '<span class="badge bg-success">DA</span>' 
+                            : '<span class="badge bg-danger">NE</span>'}
+                    </td>
+                    <td>${escapeHtml(updatedConfig.opis || '-')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-edit-config" 
+                                data-grupa-naziv="${escapeHtml(updatedConfig.grupa_artikla_naziv)}"
+                                data-salje-se="${updatedConfig.salje_se_u_optimo ? 'true' : 'false'}"
+                                data-opis="${escapeHtml(updatedConfig.opis || '')}">
+                            <i class="bi bi-pencil"></i> Uredi
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-delete-config" 
+                                data-grupa-naziv="${escapeHtml(updatedConfig.grupa_artikla_naziv)}">
+                            <i class="bi bi-trash"></i> Obriši
+                        </button>
+                    </td>
+                `;
+                break;
+            }
+        }
+        
+        showSuccessMessage('Konfiguracija uspješno ažurirana!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Greška pri ažuriranju: ' + error.message);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1552 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Pregled naloga za dostavu</h1>
+<hr>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Filteri</h5>
+    </div>
+    <div class="card-body">
+        <form id="filterForm" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Datum od</label>
+                <input type="date" class="form-control" id="datum_od" name="datum_od">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Datum do</label>
+                <input type="date" class="form-control" id="datum_do" name="datum_do">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Regija</label>
+                <select class="form-select" id="regija_id" name="regija_id">
+                    <option value="">Sve</option>
+                    {% for regija in regije %}
+                    <option value="{{ regija.regija_id }}">{{ regija.naziv_regije }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Tip vozila</label>
+                <select class="form-select" id="vozilo_tip" name="vozilo_tip">
+                    <option value="">Sve</option>
+                    {% for tip in vozilo_tipovi %}
+                    <option value="{{ tip }}">{{ tip }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Vrsta isporuke</label>
+                <select class="form-select" id="vrsta_isporuke" name="vrsta_isporuke">
+                    <option value="">Sve</option>
+                    {% for vrsta in vrste_isporuke %}
+                    <option value="{{ vrsta }}">{{ vrsta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Pretraga partnera</label>
+                <input type="text" class="form-control" id="partner_search" name="partner_search" placeholder="Naziv, šifra...">
+            </div>
+            <div class="col-md-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="bez_regije" name="bez_regije">
+                    <label class="form-check-label" for="bez_regije">
+                        Samo nalozi bez regije
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="prikazi_poslane" name="prikazi_poslane">
+                    <label class="form-check-label" for="prikazi_poslane">
+                        Prikaži poslane naloge
+                    </label>
+                </div>
+                <small class="form-text text-muted">Po defaultu se poslani nalozi sakrivaju</small>
+            </div>
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-primary">Filtriraj</button>
+                <button type="button" class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+    <div class="card-header orders-header">
+        <div class="orders-header-left">
+            <h5 class="mb-0">Nalozi</h5>
+            <span class="text-muted small">Upravljanje prikazom, filtrima i redoslijedom</span>
+        </div>
+        <div class="orders-header-right">
+            <button class="btn btn-danger btn-sm" onclick="deleteSelectedOrders()" id="deleteBtn" disabled>
+                <i class="bi bi-trash"></i> Obriši odabrane
+            </button>
+            <button class="btn btn-warning btn-sm" onclick="clearAllFilters()" id="clearFiltersBtn" title="Poništi sve filtere">
+                <i class="bi bi-funnel"></i> Poništi filtere
+            </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-layout-three-columns"></i> Prikaz kolona
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="columnFilterDropdown" style="max-height: 400px; overflow-y: auto;">
+                    <li><h6 class="dropdown-header">Odaberi kolone za prikaz</h6></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="px-3">
+                        <div class="form-check">
+                            <input class="form-check-input column-filter-checkbox" type="checkbox" value="checkbox" id="col_checkbox" checked>
+                            <label class="form-check-label" for="col_checkbox">Odabir</label>
+                        </div>
+                    </li>
+                    <!-- Columns will be dynamically added here -->
+                </ul>
+            </div>
+            <div class="page-size-select">
+                <label class="small text-muted me-1">Prikaz:</label>
+                <select class="form-select form-select-sm" id="pageSizeSelect">
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="500">500</option>
+                    <option value="all">Sve</option>
+                </select>
+            </div>
+            <button class="btn btn-success btn-sm" id="sendOptimoBtn" onclick="sendSelectedToOptimo()" disabled title="Pošalji odabrane naloge u OptimoRoute">
+                <i class="bi bi-send"></i> Pošalji u OptimoRoute
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive orders-table-wrapper">
+            <table class="table table-striped table-hover mb-0 orders-table" id="ordersTable">
+                <thead id="tableHead">
+                    <!-- Headers will be dynamically added here -->
+                </thead>
+                <tbody id="ordersTableBody">
+                    <tr>
+                        <td colspan="100" class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Učitavanje...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav class="p-3">
+            <ul class="pagination justify-content-center mb-0" id="pagination">
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Filter Modal Template (hidden, used as template) -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalTitle">Filter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="filterSearchInput" placeholder="Pretraži..." onkeyup="filterSearchItems()">
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterSelectAll" onchange="filterSelectAllItems()">
+                        <label class="form-check-label fw-bold" for="filterSelectAll">(Svi)</label>
+                    </div>
+                    <div id="filterItemsList">
+                        <!-- Filter items will be added here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" onclick="clearColumnFilter()">Poništi filter</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                <button type="button" class="btn btn-primary" onclick="applyColumnFilter()">Primijeni</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Žuta boja za poslane naloge */
+.order-sent-to-optimo {
+    background-color: #fff3cd !important; /* Žuta boja (warning yellow) */
+}
+.order-sent-to-optimo:hover {
+    background-color: #ffe69c !important; /* Tamnija žuta na hover */
+}
+.order-sent-to-optimo td {
+    background-color: transparent !important;
+}
+
+/* Expand/Collapse styles */
+.expand-all-icon {
+    cursor: pointer;
+    color: #0d6efd;
+    font-size: 1.1em;
+    margin-left: 5px;
+    transition: color 0.2s;
+}
+
+.expand-all-icon:hover {
+    color: #0a58ca;
+}
+
+.expand-order-btn {
+    padding: 2px 6px !important;
+    min-width: 28px;
+}
+
+.expand-order-btn i {
+    font-size: 0.9em;
+}
+
+.order-items-row {
+    background-color: #f8f9fa;
+}
+
+.order-items-row td {
+    border-top: 2px solid #dee2e6;
+}
+
+.order-items-row .table {
+    font-size: 0.9em;
+}
+
+.order-items-row .table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+    padding: 8px 12px;
+    white-space: nowrap;
+}
+
+.order-items-row .table td {
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.orders-header-left {
+    display: flex;
+    flex-direction: column;
+}
+.orders-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.page-size-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.orders-table-wrapper {
+    overflow-x: auto;
+    max-height: calc(100vh - 420px);
+    padding-bottom: 6px;
+}
+.orders-table {
+    min-width: 1600px;
+    white-space: nowrap;
+}
+#ordersTable thead th {
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 12px;
+    vertical-align: bottom;
+}
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding: 10px 12px !important;
+}
+.sortable:hover {
+    background-color: #f8f9fa;
+}
+.sortable.dragging {
+    opacity: 0.5;
+}
+.th-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.th-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.th-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+.th-text {
+    font-weight: 600;
+}
+.th-sort {
+    color: #6c757d;
+}
+.column-filter-icon {
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+}
+.column-filter-icon:hover {
+    background-color: #f1f3f5;
+}
+.column-filter-icon.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+.drag-handle {
+    cursor: move;
+    color: #6c757d;
+    margin-right: 5px;
+    display: inline-block;
+    pointer-events: auto;
+}
+.drag-handle:hover {
+    color: #495057;
+}
+.drag-handle i {
+    pointer-events: none;
+}
+/* Žuta boja za poslane naloge */
+.order-sent-to-optimo {
+    background-color: #fff3cd !important; /* Žuta boja (warning yellow) */
+}
+.order-sent-to-optimo:hover {
+    background-color: #ffe69c !important; /* Tamnija žuta na hover */
+}
+.order-sent-to-optimo td {
+    background-color: transparent !important;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let currentPageSize = localStorage.getItem('ordersPageSize') || '50';
+let lastPageSize = currentPageSize;
+let currentSort = { column: 'raspored', order: 'desc' };
+let columnFilters = {}; // Store active filters for each column
+let currentFilterColumn = null;
+let allOrdersData = []; // Store all loaded orders for filtering
+
+// Column definitions with all available columns from NaloziHeader
+const columnDefinitions = [
+    { key: 'checkbox', label: 'Odabir', type: 'checkbox', sortable: false, filterable: false, defaultVisible: true },
+    { key: 'broj', label: 'Broj', type: 'number', sortable: true, filterable: true, defaultVisible: true, sortField: 'broj' },
+    { key: 'datum', label: 'Datum', type: 'date', sortable: true, filterable: true, defaultVisible: false, sortField: 'datum' },
+    { key: 'raspored', label: 'Datum dostave', type: 'date', sortable: true, filterable: true, defaultVisible: true, sortField: 'raspored' },
+    { key: 'partner', label: 'Partner', type: 'text', sortable: true, filterable: true, defaultVisible: true, sortField: 'partner' },
+    { key: 'partner_naziv', label: 'Naziv partnera', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'adresa', label: 'Adresa', type: 'text', sortable: false, filterable: true, defaultVisible: true },
+    { key: 'grad', label: 'Grad', type: 'text', sortable: false, filterable: true, defaultVisible: true },
+    { key: 'postanski', label: 'Poštanski broj', type: 'text', sortable: false, filterable: true, defaultVisible: true },
+    { key: 'regija', label: 'Regija', type: 'text', sortable: false, filterable: true, defaultVisible: true },
+    { key: 'skladiste', label: 'Skladište', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'narudzba', label: 'Naruđžba', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'valuta', label: 'Valuta', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'tecaj', label: 'Tečaj', type: 'number', sortable: false, filterable: false, defaultVisible: false },
+    { key: 'generalni_rabat', label: 'Generalni rabat', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'na_uvid', label: 'Na uvid', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'referenca_isporuke', label: 'Referenca isporuke', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'status', label: 'Status', type: 'text', sortable: true, filterable: true, defaultVisible: true, sortField: 'status' },
+    { key: 'vrsta_isporuke', label: 'Vrsta isporuke', type: 'text', sortable: true, filterable: true, defaultVisible: true, sortField: 'vrsta_isporuke' },
+    { key: 'vozilo_tip', label: 'Tip vozila', type: 'text', sortable: true, filterable: true, defaultVisible: true, sortField: 'vozilo_tip' },
+    { key: 'tezina', label: 'Težina (kg)', type: 'number', sortable: true, filterable: false, defaultVisible: true, sortField: 'total_weight' },
+    { key: 'volumen', label: 'Volumen (m³)', type: 'number', sortable: true, filterable: false, defaultVisible: true, sortField: 'total_volume' },
+    { key: 'kupac_placa_isporuku', label: 'Kupac plaća isporuku', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'komercijalist', label: 'Komercijalist', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'dostavljac', label: 'Dostavljač', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'kreirao', label: 'Kreirao', type: 'text', sortable: false, filterable: true, defaultVisible: false },
+    { key: 'akcije', label: 'Akcije', type: 'actions', sortable: false, filterable: false, defaultVisible: true }
+];
+
+let columnOrder = []; // Will store the order of columns
+let visibleColumns = {}; // Will store visibility state
+
+// Initialize columns
+function initializeColumns() {
+    // Load saved column order and visibility
+    const savedOrder = localStorage.getItem('ordersColumnOrder');
+    const savedVisibility = localStorage.getItem('ordersColumnVisibility');
+    
+    if (savedOrder) {
+        columnOrder = JSON.parse(savedOrder);
+        // Ensure all default visible columns are in order
+        const defaultVisible = columnDefinitions.filter(col => col.defaultVisible).map(col => col.key);
+        defaultVisible.forEach(key => {
+            if (!columnOrder.includes(key)) {
+                columnOrder.push(key);
+            }
+        });
+    } else {
+        // Default order: only visible columns
+        columnOrder = columnDefinitions.filter(col => col.defaultVisible).map(col => col.key);
+    }
+    
+    if (savedVisibility) {
+        visibleColumns = JSON.parse(savedVisibility);
+    } else {
+        // Default visibility
+        columnDefinitions.forEach(col => {
+            visibleColumns[col.key] = col.defaultVisible;
+        });
+    }
+
+    // Ensure visibility has entries for all columns
+    columnDefinitions.forEach(col => {
+        if (visibleColumns[col.key] === undefined) {
+            visibleColumns[col.key] = col.defaultVisible;
+        }
+    });
+
+    // Ensure all visible columns are in order
+    columnDefinitions.forEach(col => {
+        if (visibleColumns[col.key] && !columnOrder.includes(col.key)) {
+            const akcijeIndex = columnOrder.indexOf('akcije');
+            if (akcijeIndex !== -1) {
+                columnOrder.splice(akcijeIndex, 0, col.key);
+            } else {
+                columnOrder.push(col.key);
+            }
+        }
+    });
+
+    // Always keep checkbox first and actions last
+    if (!columnOrder.includes('checkbox')) {
+        columnOrder.unshift('checkbox');
+    }
+    if (!columnOrder.includes('akcije')) {
+        columnOrder.push('akcije');
+    }
+    
+    // Load column filters
+    const savedFilters = localStorage.getItem('ordersColumnFilters');
+    if (savedFilters) {
+        columnFilters = JSON.parse(savedFilters);
+    }
+    
+    renderTableHeaders();
+    renderColumnFilterDropdown();
+}
+
+// Render table headers
+function renderTableHeaders() {
+    const thead = document.getElementById('tableHead');
+    thead.innerHTML = '';
+    const tr = document.createElement('tr');
+    
+    columnOrder.forEach(colKey => {
+        const colDef = columnDefinitions.find(c => c.key === colKey);
+        if (!colDef) return;
+        
+        const th = document.createElement('th');
+        th.className = colDef.sortable ? 'sortable' : '';
+        th.setAttribute('data-column', colKey);
+        if (colDef.sortField) {
+            th.setAttribute('data-sort', colDef.sortField);
+        }
+        
+        let content = '';
+        
+        if (colKey === 'checkbox') {
+            content = '<input type="checkbox" id="selectAll" onchange="toggleSelectAll()">';
+        } else {
+            const filterActive = columnFilters[colKey] && columnFilters[colKey].length > 0;
+            const sortIcon = colDef.sortable ? '<span class="th-sort"><i class="bi bi-arrow-down-up"></i></span>' : '';
+            const filterIcon = colDef.filterable
+                ? `<span class="column-filter-icon ${filterActive ? 'active' : ''}" onclick="openColumnFilter('${colKey}')" title="Filter">
+                        <i class="bi bi-funnel${filterActive ? '-fill' : ''}"></i>
+                   </span>`
+                : '';
+            content = `
+                <div class="th-wrap">
+                    <div class="th-label">
+                        <span class="drag-handle"><i class="bi bi-grip-vertical"></i></span>
+                        <span class="th-text">${colDef.label}</span>
+                        ${sortIcon}
+                    </div>
+                    <div class="th-actions">
+                        ${filterIcon}
+                        ${colKey === 'akcije' ? '<span class="expand-all-icon" onclick="expandAllOrders()" title="Proširi sve naloge"><i class="bi bi-plus-circle"></i></span>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        th.innerHTML = content;
+        tr.appendChild(th);
+    });
+    
+    thead.appendChild(tr);
+    
+    // Add drag and drop handlers
+    setupDragAndDrop();
+    // Add sort handlers
+    setupSortHandlers();
+}
+
+// Setup drag and drop for column reordering
+let draggedElement = null;
+
+function setupDragAndDrop() {
+    const headers = Array.from(document.querySelectorAll('#tableHead th'));
+    
+    headers.forEach((th) => {
+        // Make only non-checkbox columns draggable
+        if (th.getAttribute('data-column') === 'checkbox') {
+            th.draggable = false;
+            return;
+        }
+        
+        th.draggable = true;
+        
+        th.addEventListener('dragstart', (e) => {
+            draggedElement = th;
+            th.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', th.innerHTML);
+        });
+        
+        th.addEventListener('dragend', () => {
+            th.classList.remove('dragging');
+            draggedElement = null;
+            saveColumnOrder();
+        });
+        
+        th.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            if (draggedElement && draggedElement !== th) {
+                const afterElement = getDragAfterElement(headers, e.clientX);
+                const thead = th.closest('thead');
+                const tr = thead.querySelector('tr');
+                
+                if (afterElement == null) {
+                    tr.appendChild(draggedElement);
+                } else {
+                    tr.insertBefore(draggedElement, afterElement);
+                }
+            }
+        });
+        
+        th.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedElement && draggedElement !== th) {
+                saveColumnOrder();
+            }
+        });
+    });
+}
+
+function getDragAfterElement(container, x) {
+    if (!draggedElement) return null;
+    
+    const draggableElements = [...container].filter(el => 
+        el !== draggedElement && el.getAttribute('data-column') !== 'checkbox'
+    );
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = x - box.left - box.width / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function saveColumnOrder() {
+    const headers = Array.from(document.querySelectorAll('#tableHead th'));
+    columnOrder = headers.map(th => th.getAttribute('data-column')).filter(col => col);
+    localStorage.setItem('ordersColumnOrder', JSON.stringify(columnOrder));
+    // Re-render body to match new order if we have data
+    if (allOrdersData.length > 0) {
+        renderTableBody(allOrdersData);
+    }
+}
+
+// Setup sort handlers
+function setupSortHandlers() {
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', (e) => {
+            // Don't sort if clicking on filter icon, drag handle, or checkbox
+            if (e.target.tagName === 'INPUT' ||
+                e.target.classList.contains('column-filter-icon') || 
+                e.target.classList.contains('drag-handle') ||
+                e.target.closest('.drag-handle') ||
+                e.target.closest('.column-filter-icon') ||
+                e.target.closest('i.bi-grip-vertical')) {
+                return;
+            }
+            
+            const column = th.getAttribute('data-column');
+            sortTable(column);
+        });
+    });
+}
+
+// Render column filter dropdown
+function renderColumnFilterDropdown() {
+    const dropdown = document.getElementById('columnFilterDropdown');
+    const existingHeader = dropdown.querySelector('.dropdown-header');
+    const existingDivider = dropdown.querySelector('.dropdown-divider');
+    
+    // Clear existing items (except header and divider)
+    dropdown.querySelectorAll('li:not(:first-child):not(:nth-child(2))').forEach(li => li.remove());
+    
+    // Show ALL columns from definitions, not just those in columnOrder
+    columnDefinitions.forEach(colDef => {
+        const colKey = colDef.key;
+        if (colKey === 'checkbox' || colKey === 'akcije') return;
+        
+        const li = document.createElement('li');
+        li.className = 'px-3';
+        const isVisible = visibleColumns[colKey] !== false;
+        li.innerHTML = `
+            <div class="form-check">
+                <input class="form-check-input column-filter-checkbox" type="checkbox" value="${colKey}" id="col_${colKey}" ${isVisible ? 'checked' : ''}>
+                <label class="form-check-label" for="col_${colKey}">${colDef.label}</label>
+            </div>
+        `;
+        dropdown.insertBefore(li, dropdown.lastElementChild);
+    });
+    
+    // Add event listeners
+    document.querySelectorAll('.column-filter-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const col = e.target.value;
+            visibleColumns[col] = e.target.checked;
+            
+            // If column is being shown and not in columnOrder, add it
+            if (e.target.checked && !columnOrder.includes(col)) {
+                // Add before 'akcije' column
+                const akcijeIndex = columnOrder.indexOf('akcije');
+                if (akcijeIndex !== -1) {
+                    columnOrder.splice(akcijeIndex, 0, col);
+                } else {
+                    columnOrder.push(col);
+                }
+                saveColumnOrder();
+                renderTableHeaders();
+                if (allOrdersData.length > 0) {
+                    renderTableBody(allOrdersData);
+                }
+            } else if (!e.target.checked) {
+                // Remove from columnOrder if hidden
+                const index = columnOrder.indexOf(col);
+                if (index !== -1) {
+                    columnOrder.splice(index, 1);
+                    saveColumnOrder();
+                    renderTableHeaders();
+                    if (allOrdersData.length > 0) {
+                        renderTableBody(allOrdersData);
+                    }
+                }
+            }
+            
+            saveColumnVisibility();
+            applyColumnVisibility();
+        });
+    });
+}
+
+// Open column filter modal
+function openColumnFilter(columnKey) {
+    currentFilterColumn = columnKey;
+    const colDef = columnDefinitions.find(c => c.key === columnKey);
+    document.getElementById('filterModalTitle').textContent = `Filter: ${colDef.label}`;
+    
+    // Get unique values for this column from current data
+    const uniqueValues = getUniqueValuesForColumn(columnKey);
+    
+    // Render filter items
+    const itemsList = document.getElementById('filterItemsList');
+    itemsList.innerHTML = '';
+    
+    if (uniqueValues.length === 0) {
+        itemsList.innerHTML = '<div class="text-muted">Nema podataka za filtriranje</div>';
+        return;
+    }
+    
+    uniqueValues.forEach(value => {
+        const div = document.createElement('div');
+        div.className = 'form-check mb-2';
+        const isChecked = columnFilters[columnKey] && columnFilters[columnKey].includes(value);
+        const safeId = `filter_${columnKey}_${value}`.replace(/[^a-zA-Z0-9_]/g, '_');
+        div.innerHTML = `
+            <input class="form-check-input filter-item-checkbox" type="checkbox" value="${escapeHtml(value)}" id="${safeId}" ${isChecked ? 'checked' : ''}>
+            <label class="form-check-label" for="${safeId}">${escapeHtml(value)}</label>
+        `;
+        itemsList.appendChild(div);
+    });
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('filterModal'));
+    modal.show();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getUniqueValuesForColumn(columnKey) {
+    // Get values from all loaded orders data
+    const values = new Set();
+    
+    allOrdersData.forEach(order => {
+        const value = getOrderValueForColumn(order, columnKey);
+        if (value && value !== '-') {
+            values.add(value);
+        }
+    });
+    
+    return Array.from(values).sort();
+}
+
+function filterSearchItems() {
+    const searchTerm = document.getElementById('filterSearchInput').value.toLowerCase();
+    const items = document.querySelectorAll('#filterItemsList .form-check');
+    
+    items.forEach(item => {
+        const label = item.querySelector('label').textContent.toLowerCase();
+        item.style.display = label.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterSelectAllItems() {
+    const selectAll = document.getElementById('filterSelectAll').checked;
+    const items = document.querySelectorAll('#filterItemsList .filter-item-checkbox');
+    
+    items.forEach(checkbox => {
+        if (checkbox.closest('.form-check').style.display !== 'none') {
+            checkbox.checked = selectAll;
+        }
+    });
+}
+
+function applyColumnFilter() {
+    if (!currentFilterColumn) return;
+    
+    const checkedItems = Array.from(document.querySelectorAll('#filterItemsList .filter-item-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    if (checkedItems.length === 0) {
+        delete columnFilters[currentFilterColumn];
+    } else {
+        columnFilters[currentFilterColumn] = checkedItems;
+    }
+    
+    localStorage.setItem('ordersColumnFilters', JSON.stringify(columnFilters));
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+    modal.hide();
+    
+    // Reload orders with filters
+    loadOrders(currentPage);
+    
+    // Update filter icon
+    renderTableHeaders();
+    updateClearFiltersButton();
+}
+
+function clearColumnFilter() {
+    if (!currentFilterColumn) return;
+    
+    // Clear filter for current column
+    delete columnFilters[currentFilterColumn];
+    localStorage.setItem('ordersColumnFilters', JSON.stringify(columnFilters));
+    
+    // Uncheck all checkboxes in modal
+    document.querySelectorAll('#filterItemsList .filter-item-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('filterSelectAll').checked = false;
+    
+    // Reload orders
+    loadOrders(currentPage);
+    
+    // Update filter icon
+    renderTableHeaders();
+    updateClearFiltersButton();
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('filterModal'));
+    modal.hide();
+}
+
+function clearAllFilters() {
+    columnFilters = {};
+    localStorage.removeItem('ordersColumnFilters');
+    // Restore page size selection
+    currentPageSize = lastPageSize;
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if (pageSizeSelect) {
+        pageSizeSelect.value = currentPageSize;
+    }
+    loadOrders(currentPage);
+    renderTableHeaders();
+    updateClearFiltersButton();
+}
+
+// Load saved column visibility from localStorage
+function loadColumnVisibility() {
+    const saved = localStorage.getItem('ordersColumnVisibility');
+    if (saved) {
+        visibleColumns = JSON.parse(saved);
+        // Update checkboxes
+        Object.keys(visibleColumns).forEach(col => {
+            const checkbox = document.getElementById(`col_${col}`);
+            if (checkbox) {
+                checkbox.checked = visibleColumns[col];
+            }
+        });
+        applyColumnVisibility();
+    }
+}
+
+// Save column visibility to localStorage
+function saveColumnVisibility() {
+    localStorage.setItem('ordersColumnVisibility', JSON.stringify(visibleColumns));
+}
+
+// Apply column visibility
+function applyColumnVisibility() {
+    columnOrder.forEach((colKey, index) => {
+        const colDef = columnDefinitions.find(c => c.key === colKey);
+        if (!colDef) return;
+        
+        const isVisible = visibleColumns[colKey] !== false;
+        
+        // Hide/show table headers
+        const headers = document.querySelectorAll('#tableHead th');
+        if (headers[index]) {
+            headers[index].style.display = isVisible ? '' : 'none';
+        }
+        
+        // Hide/show table cells
+        document.querySelectorAll('#ordersTableBody tr').forEach(tr => {
+            const cells = tr.querySelectorAll('td');
+            if (cells[index]) {
+                cells[index].style.display = isVisible ? '' : 'none';
+            }
+        });
+    });
+}
+
+// Column filter checkbox change
+document.addEventListener('DOMContentLoaded', () => {
+    initializeColumns();
+    loadColumnVisibility();
+    updateClearFiltersButton();
+
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if (pageSizeSelect) {
+        pageSizeSelect.value = currentPageSize;
+        pageSizeSelect.addEventListener('change', (e) => {
+            currentPageSize = e.target.value;
+            lastPageSize = currentPageSize;
+            localStorage.setItem('ordersPageSize', currentPageSize);
+            loadOrders(1);
+        });
+    }
+    
+    // Prevent dropdown from closing when clicking inside
+    document.getElementById('columnFilterDropdown').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+});
+
+function loadOrders(page = 1) {
+    currentPage = page;
+    const formData = new FormData(document.getElementById('filterForm'));
+    const params = new URLSearchParams();
+    
+    params.append('page', page);
+    const hasColumnFilters = Object.keys(columnFilters).length > 0;
+    let hasFormFilters = false;
+    let effectivePageSize = currentPageSize;
+    if (hasColumnFilters) {
+        // When filtered, show all results on one page
+        effectivePageSize = 'all';
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        if (pageSizeSelect) {
+            pageSizeSelect.value = 'all';
+        }
+    }
+    const pageSizeValue = effectivePageSize === 'all' ? 100000 : parseInt(effectivePageSize, 10);
+    params.append('page_size', pageSizeValue);
+    params.append('sort_by', currentSort.column);
+    params.append('sort_order', currentSort.order);
+    
+    for (const [key, value] of formData.entries()) {
+        if (key === 'bez_regije' || key === 'prikazi_poslane') {
+            // Checkbox values
+            const checkbox = document.getElementById(key);
+            if (checkbox && checkbox.checked) {
+                params.append(key, 'true');
+                hasFormFilters = true;
+            }
+        } else if (value) {
+            params.append(key, value);
+            hasFormFilters = true;
+        }
+    }
+
+    const hasAnyFilters = hasColumnFilters || hasFormFilters;
+    if (hasAnyFilters && effectivePageSize !== 'all') {
+        effectivePageSize = 'all';
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        if (pageSizeSelect) {
+            pageSizeSelect.value = 'all';
+        }
+        params.set('page_size', 100000);
+    }
+    
+    fetch(`/api/orders?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            allOrdersData = data.items || [];
+            renderTableBody(allOrdersData);
+            
+            // Pagination
+            if (hasAnyFilters || effectivePageSize === 'all') {
+                updatePagination(1, 1, allOrdersData.length);
+            } else {
+                updatePagination(data.page, data.pages, data.total);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('ordersTableBody').innerHTML = 
+                '<tr><td colspan="100" class="text-center text-danger">Greška pri učitavanju podataka</td></tr>';
+        });
+}
+
+function renderTableBody(orders) {
+    const tbody = document.getElementById('ordersTableBody');
+    
+    // Save currently expanded orders before clearing
+    const currentlyExpanded = new Set(expandedOrders);
+    
+    tbody.innerHTML = '';
+    
+    // Clear expanded orders set - will be restored if orders are still visible
+    expandedOrders.clear();
+    
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="100" class="text-center">Nema naloga</td></tr>';
+        return;
+    }
+    
+    // Apply column filters
+    const filteredOrders = orders.filter(order => {
+        for (const [colKey, filterValues] of Object.entries(columnFilters)) {
+            if (!filterValues || filterValues.length === 0) continue;
+            
+            const colIndex = columnOrder.indexOf(colKey);
+            if (colIndex === -1) continue;
+            
+            const orderValue = getOrderValueForColumn(order, colKey);
+            if (!filterValues.includes(orderValue)) {
+                return false;
+            }
+        }
+        return true;
+    });
+    
+    filteredOrders.forEach(order => {
+        const row = document.createElement('tr');
+        row.innerHTML = '';
+        
+        // Dodaj klasu za poslane naloge (žuta boja)
+        if (order.sent_to_optimo) {
+            row.classList.add('order-sent-to-optimo');
+        }
+        
+        row.setAttribute('data-nalog-uid', order.nalog_prodaje_uid);
+        
+        columnOrder.forEach(colKey => {
+            const td = document.createElement('td');
+            td.innerHTML = getCellContent(order, colKey);
+            row.appendChild(td);
+        });
+        
+        tbody.appendChild(row);
+        
+        // Restore expanded state if this order was previously expanded
+        if (currentlyExpanded.has(order.nalog_prodaje_uid)) {
+            const expandBtn = row.querySelector('.expand-order-btn');
+            if (expandBtn) {
+                // Auto-expand after a short delay to allow DOM to settle
+                setTimeout(() => {
+                    toggleOrderItems(order.nalog_prodaje_uid, expandBtn);
+                }, 50);
+            }
+        }
+    });
+    
+    // Apply column visibility after loading
+    applyColumnVisibility();
+}
+
+function getOrderValueForColumn(order, colKey) {
+    const mapping = {
+        'broj': order.broj || '-',
+        'datum': order.datum || '-',
+        'raspored': order.raspored || '-',
+        'partner': order.partner_naziv || order.partner || '-',
+        'partner_naziv': order.partner_naziv || '-',
+        'adresa': order.partner_adresa || '-',
+        'grad': order.partner_mjesto || '-',
+        'postanski': order.partner_postanski_broj || '-',
+        'regija': order.regija_naziv || '-',
+        'skladiste': order.skladiste || '-',
+        'narudzba': order.narudzba || '-',
+        'valuta': order.valuta || '-',
+        'tecaj': order.tecaj || '-',
+        'generalni_rabat': order.generalni_rabat || '-',
+        'na_uvid': order.na_uvid || '-',
+        'referenca_isporuke': order.referenca_isporuke || '-',
+        'status': order.status || '-',
+        'vrsta_isporuke': order.vrsta_isporuke || '-',
+        'vozilo_tip': order.vozilo_tip || '-',
+        'tezina': order.total_weight ? order.total_weight.toFixed(2) : '-',
+        'volumen': order.total_volume ? (order.total_volume / 1000000).toFixed(3) : '-',
+        'kupac_placa_isporuku': order.kupac_placa_isporuku || '-',
+        'komercijalist': order.komercijalist__radnik || '-',
+        'dostavljac': order.dostavljac__radnik || '-',
+        'kreirao': order.kreirao__radnik || '-'
+    };
+    
+    return mapping[colKey] || '-';
+}
+
+function getCellContent(order, colKey) {
+    switch(colKey) {
+        case 'checkbox':
+            return `<input type="checkbox" class="order-checkbox" value="${order.nalog_prodaje_uid}" onchange="updateDeleteButton()">`;
+        case 'broj':
+            return order.broj || '-';
+        case 'datum':
+            return order.datum || '-';
+        case 'raspored':
+            return order.raspored || '-';
+        case 'partner':
+            return order.partner_naziv || order.partner || '-';
+        case 'partner_naziv':
+            return order.partner_naziv || '-';
+        case 'adresa':
+            return order.partner_adresa || '-';
+        case 'grad':
+            return order.partner_mjesto || '-';
+        case 'postanski':
+            return order.partner_postanski_broj || '-';
+        case 'regija':
+            return order.regija_naziv ? `<span class="badge badge-region">${order.regija_naziv}</span>` : '-';
+        case 'skladiste':
+            return order.skladiste || '-';
+        case 'narudzba':
+            return order.narudzba || '-';
+        case 'valuta':
+            return order.valuta || '-';
+        case 'tecaj':
+            return order.tecaj ? parseFloat(order.tecaj).toFixed(4) : '-';
+        case 'generalni_rabat':
+            return order.generalni_rabat || '-';
+        case 'na_uvid':
+            return order.na_uvid || '-';
+        case 'referenca_isporuke':
+            return order.referenca_isporuke || '-';
+        case 'status':
+            return order.status || '-';
+        case 'vrsta_isporuke':
+            return order.vrsta_isporuke || '-';
+        case 'vozilo_tip':
+            return order.vozilo_tip ? `<span class="badge ${order.vozilo_tip === 'KAMION' ? 'badge-kamion' : 'badge-kombi'}">${order.vozilo_tip}</span>` : '-';
+        case 'tezina':
+            return order.total_weight ? order.total_weight.toFixed(2) : '-';
+        case 'volumen':
+            return order.total_volume ? (order.total_volume / 1000000).toFixed(3) : '-';
+        case 'kupac_placa_isporuku':
+            return order.kupac_placa_isporuku || '-';
+        case 'komercijalist':
+            return order.komercijalist__radnik || '-';
+        case 'dostavljac':
+            return order.dostavljac__radnik || '-';
+        case 'kreirao':
+            return order.kreirao__radnik || '-';
+        case 'akcije':
+            return `
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <a href="/order/${order.nalog_prodaje_uid}" class="btn btn-sm btn-primary"><i class="bi bi-eye"></i> Detalji</a>
+                    <button class="btn btn-sm btn-outline-secondary expand-order-btn" 
+                            onclick="toggleOrderItems('${order.nalog_prodaje_uid}', this)" 
+                            title="Prikaži/sakrij stavke">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                </div>
+            `;
+        default:
+            return '-';
+    }
+}
+
+// Sorting
+function sortTable(column) {
+    const sortColumn = document.querySelector(`th[data-column="${column}"]`)?.getAttribute('data-sort') || column;
+    
+    if (currentSort.column === sortColumn) {
+        currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.column = sortColumn;
+        currentSort.order = 'desc';
+    }
+    
+    // Update sort icons
+    document.querySelectorAll('th.sortable i').forEach(icon => {
+        if (icon.classList.contains('bi-arrow-down-up') || icon.classList.contains('bi-arrow-up') || icon.classList.contains('bi-arrow-down')) {
+            icon.className = 'bi bi-arrow-down-up';
+        }
+    });
+    
+    const currentTh = document.querySelector(`th[data-column="${column}"]`);
+    if (currentTh) {
+        const icon = currentTh.querySelector('.bi-arrow-down-up, .bi-arrow-up, .bi-arrow-down');
+        if (icon) {
+            icon.className = currentSort.order === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
+        }
+    }
+    
+    loadOrders(currentPage);
+}
+
+function updatePagination(currentPage, totalPages, total) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadOrders(${currentPage - 1}); return false;">Prethodna</a>`;
+    pagination.appendChild(prevLi);
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="loadOrders(${i}); return false;">${i}</a>`;
+            pagination.appendChild(li);
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+            const li = document.createElement('li');
+            li.className = 'page-item disabled';
+            li.innerHTML = '<span class="page-link">...</span>';
+            pagination.appendChild(li);
+        }
+    }
+    
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadOrders(${currentPage + 1}); return false;">Sljedeća</a>`;
+    pagination.appendChild(nextLi);
+}
+
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+    currentSort = { column: 'raspored', order: 'desc' };
+    columnFilters = {};
+    localStorage.removeItem('ordersColumnFilters');
+    currentPageSize = lastPageSize;
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if (pageSizeSelect) {
+        pageSizeSelect.value = currentPageSize;
+    }
+    loadOrders(1);
+    renderTableHeaders();
+    // Update clear filters button visibility
+    updateClearFiltersButton();
+}
+
+function updateClearFiltersButton() {
+    const hasFilters = Object.keys(columnFilters).length > 0;
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+        clearBtn.style.display = hasFilters ? '' : 'none';
+    }
+    if (!hasFilters) {
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        if (pageSizeSelect) {
+            pageSizeSelect.value = currentPageSize;
+        }
+    }
+}
+
+document.getElementById('filterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    loadOrders(1);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadOrders(1);
+});
+
+async function deleteSelectedOrders() {
+    const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (selectedIds.length === 0) {
+        alert('Molimo odaberite naloge za brisanje');
+        return;
+    }
+    
+    if (!confirm(`Jeste li sigurni da želite obrisati ${selectedIds.length} naloga?`)) {
+        return;
+    }
+    
+    let deleted = 0;
+    let failed = 0;
+    
+    for (const id of selectedIds) {
+        try {
+            const response = await fetch(`/api/orders/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                deleted++;
+            } else {
+                failed++;
+            }
+        } catch (error) {
+            failed++;
+        }
+    }
+    
+    alert(`Brisanje završeno: ${deleted} obrisano, ${failed} grešaka`);
+    loadOrders(currentPage);
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.order-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    updateDeleteButton();
+}
+
+function updateDeleteButton() {
+    const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+    const deleteBtn = document.getElementById('deleteBtn');
+    deleteBtn.disabled = checkboxes.length === 0;
+    const sendBtn = document.getElementById('sendOptimoBtn');
+    if (sendBtn) {
+        // Omogući slanje jednog ili više odabranih naloga
+        sendBtn.disabled = checkboxes.length === 0;
+    }
+}
+
+async function sendSelectedToOptimo() {
+    const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+    if (selectedIds.length === 0) {
+        alert('Molimo odaberite barem jedan nalog za slanje u OptimoRoute.');
+        return;
+    }
+
+    const nalogCount = selectedIds.length;
+    const confirmMessage = nalogCount === 1 
+        ? `Želite li poslati nalog ${selectedIds[0]} u OptimoRoute?`
+        : `Želite li poslati ${nalogCount} naloga u OptimoRoute?`;
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    const sendBtn = document.getElementById('sendOptimoBtn');
+    const originalText = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Slanje ${nalogCount} naloga...`;
+
+    try {
+        const response = await fetch('/api/orders/send-to-optimo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nalog_uids: selectedIds
+            })
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(`Greška pri slanju naloga: ${data.detail || 'Nepoznata greška'}`);
+        } else {
+            // Detaljnija poruka s rezultatima
+            let message = data.message || 'Slanje u OptimoRoute završeno.';
+            
+            // Prikaži greške ako postoje
+            const failedResults = (data.results || []).filter(r => !r.success);
+            if (failedResults.length > 0) {
+                message += '\n\n⚠️ GREŠKE (' + failedResults.length + ' grupa artikala):\n';
+                failedResults.forEach(r => {
+                    const errorMsg = r.error_message || r.error_code || 'Nepoznata greška';
+                    const address = r.address || 'N/A';
+                    const grupa = r.grupa_artikla || r.orderNo || 'N/A';
+                    message += `\n• ${grupa} (${address}): ${errorMsg}`;
+                });
+            }
+            
+            // Sažetak po nalogu
+            if (data.nalog_summary) {
+                message += '\n\n📊 Detalji po nalogu:';
+                Object.entries(data.nalog_summary).forEach(([uid, summary]) => {
+                    const status = summary.failed_grupa === 0 ? '✅' : '⚠️';
+                    message += `\n${status} Nalog ${uid}: ${summary.success_grupa}/${summary.total_grupa} grupa artikala uspješno`;
+                });
+            }
+            
+            alert(message);
+            console.log('OptimoRoute results:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Greška pri slanju naloga: ' + error.message);
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalText;
+        loadOrders(currentPage);
+    }
+}
+
+// Expand/Collapse order items functionality
+const expandedOrders = new Set(); // Track which orders are expanded
+
+async function toggleOrderItems(nalog_uid, button) {
+    if (!nalog_uid) {
+        // Try to get from button's row
+        const row = button.closest('tr');
+        if (row) {
+            nalog_uid = row.getAttribute('data-nalog-uid');
+        }
+        if (!nalog_uid) {
+            console.error('Nalog UID not found');
+            return;
+        }
+    }
+    
+    const row = button.closest('tr');
+    if (!row) {
+        console.error('Row not found');
+        return;
+    }
+    
+    const isExpanded = expandedOrders.has(nalog_uid);
+    
+    if (isExpanded) {
+        // Collapse - remove items row
+        const itemsRow = row.nextElementSibling;
+        if (itemsRow && itemsRow.classList.contains('order-items-row')) {
+            itemsRow.remove();
+        }
+        expandedOrders.delete(nalog_uid);
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.className = 'bi bi-plus-circle';
+        }
+        button.title = 'Prikaži stavke';
+    } else {
+        // Expand - show loading, fetch items, then display
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.className = 'bi bi-hourglass-split';
+        }
+        button.disabled = true;
+        
+        try {
+            const response = await fetch(`/api/orders/${encodeURIComponent(nalog_uid)}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || 'Greška pri dohvaćanju stavki');
+            }
+            const orderData = await response.json();
+            
+            // Create items row
+            const itemsRow = document.createElement('tr');
+            itemsRow.className = 'order-items-row';
+            itemsRow.setAttribute('data-parent-nalog', nalog_uid);
+            const td = document.createElement('td');
+            td.colSpan = columnOrder.length;
+            td.style.padding = '0';
+            td.style.backgroundColor = '#f8f9fa';
+            
+            // Render items table
+            td.innerHTML = renderOrderItemsTable(orderData.stavke || []);
+            itemsRow.appendChild(td);
+            
+            // Insert after current row
+            row.parentNode.insertBefore(itemsRow, row.nextSibling);
+            
+            expandedOrders.add(nalog_uid);
+            if (icon) {
+                icon.className = 'bi bi-dash-circle';
+            }
+            button.title = 'Sakrij stavke';
+        } catch (error) {
+            console.error('Error loading order items:', error);
+            alert('Greška pri učitavanju stavki: ' + error.message);
+            const icon = button.querySelector('i');
+            if (icon) {
+                icon.className = 'bi bi-plus-circle';
+            }
+        } finally {
+            button.disabled = false;
+        }
+    }
+}
+
+function renderOrderItemsTable(stavke) {
+    if (!stavke || stavke.length === 0) {
+        return '<div style="padding: 20px; text-align: center; color: #6c757d;">Nema stavki</div>';
+    }
+    
+    let html = `
+        <div style="padding: 15px;">
+            <h6 style="margin-bottom: 15px; color: #495057;">Stavke (${stavke.length})</h6>
+            <div style="overflow-x: auto;">
+                <table class="table table-sm table-bordered table-hover" style="margin-bottom: 0;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Artikl</th>
+                            <th>Naziv</th>
+                            <th>Količina</th>
+                            <th>Cijena</th>
+                            <th>Opis</th>
+                            <th>Masa (kg)</th>
+                            <th>Volumen (m³)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    stavke.forEach(stavka => {
+        const kolicina = stavka.kolicina ? parseFloat(stavka.kolicina).toFixed(2) : '0.00';
+        const cijena = stavka.cijena ? parseFloat(stavka.cijena).toFixed(2) : '0.00';
+        const masa = stavka.artikl_masa ? parseFloat(stavka.artikl_masa).toFixed(2) : '-';
+        const volumen = stavka.artikl_volumen ? (parseFloat(stavka.artikl_volumen) / 1000000).toFixed(3) : '-';
+        
+        html += `
+            <tr>
+                <td>${escapeHtml(stavka.artikl || '-')}</td>
+                <td>${escapeHtml(stavka.artikl_naziv || '-')}</td>
+                <td style="text-align: right;">${kolicina}</td>
+                <td style="text-align: right;">${cijena}</td>
+                <td>${escapeHtml(stavka.opis || '')}</td>
+                <td style="text-align: right;">${masa}</td>
+                <td style="text-align: right;">${volumen}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function expandAllOrders() {
+    const expandButtons = document.querySelectorAll('.expand-order-btn:not(:disabled)');
+    const notExpanded = Array.from(expandButtons).filter(btn => {
+        const icon = btn.querySelector('i');
+        return icon && icon.classList.contains('bi-plus-circle');
+    });
+    
+    if (notExpanded.length === 0) {
+        // Collapse all if all are expanded
+        expandButtons.forEach(btn => {
+            const icon = btn.querySelector('i');
+            if (icon && icon.classList.contains('bi-dash-circle')) {
+                btn.click();
+            }
+        });
+        // Update header icon
+        const headerIcon = document.querySelector('.expand-all-icon i');
+        if (headerIcon) {
+            headerIcon.className = 'bi bi-plus-circle';
+        }
+        return;
+    }
+    
+    // Expand all
+    const headerIcon = document.querySelector('.expand-all-icon i');
+    if (headerIcon) {
+        headerIcon.className = 'bi bi-hourglass-split';
+    }
+    
+    for (const btn of notExpanded) {
+        const row = btn.closest('tr');
+        const nalog_uid = row ? row.getAttribute('data-nalog-uid') : null;
+        if (nalog_uid) {
+            await toggleOrderItems(nalog_uid, btn);
+            // Small delay to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+    
+    // Update header icon
+    if (headerIcon) {
+        headerIcon.className = 'bi bi-dash-circle';
+    }
+}
+</script>
+{% endblock %}

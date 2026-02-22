@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Vrste Isporuke - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Dozvoljene Vrste Isporuke</h1>
+<hr>
+
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>Upozorenje:</strong> Promjena ovih postavki utječe na budući sync. Samo naloge s dozvoljenim vrstama isporuke će biti spremljeni u bazu.
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Lista dozvoljenih vrsta isporuke</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-circle"></i> Dodaj
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Vrsta isporuke</th>
+                        <th>Opis</th>
+                        <th>Aktivan</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dt in delivery_types %}
+                    <tr>
+                        <td><strong>{{ dt.vrsta_isporuke }}</strong></td>
+                        <td>{{ dt.opis or '-' }}</td>
+                        <td>
+                            {% if dt.aktivan %}
+                            <span class="badge bg-success">Aktivan</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Neaktivan</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editType('{{ dt.vrsta_isporuke }}', '{{ dt.opis }}', {{ dt.aktivan }})">
+                                <i class="bi bi-pencil"></i> Uredi
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteType('{{ dt.vrsta_isporuke }}')">
+                                <i class="bi bi-trash"></i> Obriši
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dodaj vrstu isporuke</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Vrsta isporuke *</label>
+                        <input type="text" class="form-control" name="vrsta_isporuke" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <input type="text" class="form-control" name="opis">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aktivan" checked>
+                            <label class="form-check-label">Aktivan</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Uredi vrstu isporuke</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" name="vrsta_isporuke" id="edit_vrsta_isporuke">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Vrsta isporuke</label>
+                        <input type="text" class="form-control" id="edit_vrsta_isporuke_display" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <input type="text" class="form-control" name="opis" id="edit_opis">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aktivan" id="edit_aktivan">
+                            <label class="form-check-label">Aktivan</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Spremi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editType(vrsta_isporuke, opis, aktivan) {
+    document.getElementById('edit_vrsta_isporuke').value = vrsta_isporuke;
+    document.getElementById('edit_vrsta_isporuke_display').value = vrsta_isporuke;
+    document.getElementById('edit_opis').value = opis || '';
+    document.getElementById('edit_aktivan').checked = aktivan;
+    
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function deleteType(vrsta_isporuke) {
+    if (!confirm(`Jeste li sigurni da želite obrisati vrstu isporuke "${vrsta_isporuke}"?`)) {
+        return;
+    }
+    
+    fetch(`/api/config/delivery-types/${vrsta_isporuke}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri brisanju');
+        }
+    });
+}
+
+document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        vrsta_isporuke: formData.get('vrsta_isporuke'),
+        opis: formData.get('opis'),
+        aktivan: formData.get('aktivan') === 'on'
+    };
+    
+    fetch('/api/config/delivery-types', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri dodavanju');
+        }
+    });
+});
+
+document.getElementById('editForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const vrsta_isporuke = formData.get('vrsta_isporuke');
+    const data = {
+        opis: formData.get('opis'),
+        aktivan: formData.get('aktivan') === 'on'
+    };
+    
+    fetch(`/api/config/delivery-types/${vrsta_isporuke}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri ažuriranju');
+        }
+    });
+});
+</script>
+{% endblock %}

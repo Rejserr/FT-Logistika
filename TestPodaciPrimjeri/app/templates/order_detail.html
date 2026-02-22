@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Order Detail - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Detalji Naloga: {{ nalog_uid }}</h1>
+<hr>
+
+<div id="orderDetail">
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Učitavanje...</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const nalogUid = '{{ nalog_uid }}';
+const regijeList = {{ regije | tojson }};
+
+fetch(`/api/orders/${nalogUid}`)
+    .then(response => response.json())
+    .then(data => {
+        const container = document.getElementById('orderDetail');
+        
+        // Header Info
+        let html = `
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Informacije o nalogu</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Broj</strong></label>
+                                <input type="text" class="form-control" id="broj" value="${data.broj || ''}" readonly>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Datum</strong></label>
+                                <input type="date" class="form-control" id="datum" value="${data.datum || ''}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Raspored</strong></label>
+                                <input type="date" class="form-control" id="raspored" value="${data.raspored || ''}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Status</strong></label>
+                                <input type="text" class="form-control" id="status" value="${data.status || ''}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Vrsta isporuke</strong></label>
+                                <input type="text" class="form-control" id="vrsta_isporuke" value="${data.vrsta_isporuke || ''}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Tip vozila</strong></label>
+                                <input type="text" class="form-control" id="vozilo_tip" value="${data.vozilo_tip || ''}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Partner:</strong> ${data.partner_naziv || data.partner || '-'}</p>
+                            <p><strong>Adresa:</strong> ${data.partner_adresa || '-'}</p>
+                            <p><strong>Mjesto:</strong> ${data.partner_mjesto || '-'}</p>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Poštanski broj</strong></label>
+                                <input type="text" class="form-control" id="partner_postanski_broj" value="${data.partner_postanski_broj || ''}">
+                            </div>
+                            <p>
+                                <strong>Regija:</strong> 
+                                <span id="regijaDisplay">${data.regija_naziv ? `<span class="badge badge-region">${data.regija_naziv}</span>` : '-'}</span>
+                                <button class="btn btn-sm btn-outline-primary ms-2" onclick="refreshRegion('${nalogUid}')" title="Osvježi regiju na temelju poštanskog broja">
+                                    <i class="bi bi-arrow-clockwise"></i> Osvježi regiju
+                                </button>
+                            </p>
+                            <div class="mb-2">
+                                <label class="form-label"><strong>Ručno dodijeli regiju</strong></label>
+                                <select class="form-select" id="regija_id">
+                                    <option value="">-- Bez regije --</option>
+                                    ${regijeList.map(r => `<option value="${r.regija_id}" ${data.regija_id === r.regija_id ? 'selected' : ''}>${r.naziv_regije}</option>`).join('')}
+                                </select>
+                            </div>
+                            <p><strong>Tip vozila:</strong> ${data.vozilo_tip ? `<span class="badge ${data.vozilo_tip === 'KAMION' ? 'badge-kamion' : 'badge-kombi'}">${data.vozilo_tip}</span>` : '-'}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <p><strong>Ukupna težina:</strong> ${data.total_weight ? data.total_weight.toFixed(2) + ' kg' : '-'}</p>
+                            <p><strong>Ukupni volumen:</strong> ${data.total_volume ? (data.total_volume / 1000000).toFixed(3) + ' m³' : '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-primary" onclick="saveOrder('${nalogUid}')">
+                            <i class="bi bi-save"></i> Spremi izmjene
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Stavke
+        if (data.stavke && data.stavke.length > 0) {
+            html += `
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Stavke (${data.stavke.length})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Artikl</th>
+                                        <th>Naziv</th>
+                                        <th>Količina</th>
+                                        <th>Cijena</th>
+                                        <th>Opis</th>
+                                        <th>Masa (kg)</th>
+                                        <th>Volumen (m³)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            data.stavke.forEach(stavka => {
+                const safeOpis = (stavka.opis || '').replace(/"/g, '&quot;');
+                html += `
+                    <tr>
+                        <td>${stavka.artikl || '-'}</td>
+                        <td>${stavka.artikl_naziv || '-'}</td>
+                        <td>
+                            <input type="number" step="0.001" class="form-control form-control-sm stavka-kolicina" data-stavka-uid="${stavka.stavka_uid}" value="${stavka.kolicina ?? ''}">
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" class="form-control form-control-sm stavka-cijena" data-stavka-uid="${stavka.stavka_uid}" value="${stavka.cijena ?? ''}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm stavka-opis" data-stavka-uid="${stavka.stavka_uid}" value="${safeOpis}">
+                        </td>
+                        <td>${stavka.artikl_masa ? stavka.artikl_masa.toFixed(2) : '-'}</td>
+                        <td>${stavka.artikl_volumen ? (stavka.artikl_volumen / 1000000).toFixed(3) : '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // OptimoRoute Payload
+        if (data.optimo_payload) {
+            html += `
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>OptimoRoute Payload</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-light p-3"><code>${JSON.stringify(data.optimo_payload, null, 2)}</code></pre>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Back button
+        html += `
+            <div class="mb-4">
+                <a href="/dashboard" class="btn btn-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Natrag na Dashboard
+                </a>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('orderDetail').innerHTML = 
+            '<div class="alert alert-danger">Greška pri učitavanju podataka</div>';
+    });
+
+async function saveOrder(nalogUid) {
+    const statusEl = document.createElement('div');
+    statusEl.className = 'mt-2';
+    
+    const container = document.getElementById('orderDetail');
+    container.prepend(statusEl);
+    
+    const stavkePayload = [];
+    const kolicinaInputs = document.querySelectorAll('.stavka-kolicina');
+    kolicinaInputs.forEach(input => {
+        const uid = input.dataset.stavkaUid;
+        const cijenaInput = document.querySelector(`.stavka-cijena[data-stavka-uid="${uid}"]`);
+        const opisInput = document.querySelector(`.stavka-opis[data-stavka-uid="${uid}"]`);
+        stavkePayload.push({
+            stavka_uid: uid,
+            kolicina: input.value !== '' ? parseFloat(input.value) : null,
+            cijena: cijenaInput && cijenaInput.value !== '' ? parseFloat(cijenaInput.value) : null,
+            opis: opisInput ? opisInput.value : null
+        });
+    });
+    
+    const regijaValue = document.getElementById('regija_id').value;
+    const payload = {
+        status: document.getElementById('status').value || null,
+        datum: document.getElementById('datum').value || null,
+        raspored: document.getElementById('raspored').value || null,
+        vrsta_isporuke: document.getElementById('vrsta_isporuke').value || null,
+        vozilo_tip: document.getElementById('vozilo_tip').value || null,
+        partner_postanski_broj: document.getElementById('partner_postanski_broj').value || null,
+        regija_id: regijaValue === '' ? null : parseInt(regijaValue, 10),
+        stavke: stavkePayload
+    };
+    
+    try {
+        const response = await fetch(`/api/orders/${nalogUid}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (response.ok) {
+            statusEl.innerHTML = `<div class="alert alert-success">Nalog je uspješno spremljen.</div>`;
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+        } else {
+            statusEl.innerHTML = `<div class="alert alert-danger">Greška pri spremanju: ${data.detail || 'Nepoznata greška'}</div>`;
+        }
+    } catch (error) {
+        statusEl.innerHTML = `<div class="alert alert-danger">Greška pri spremanju: ${error.message}</div>`;
+    }
+}
+
+// Refresh region function
+async function refreshRegion(nalogUid) {
+    const regijaDisplay = document.getElementById('regijaDisplay');
+    if (!regijaDisplay) {
+        console.error('regijaDisplay element not found');
+        return;
+    }
+    
+    const originalContent = regijaDisplay.innerHTML;
+    
+    // Show loading
+    regijaDisplay.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Učitavanje...';
+    
+    try {
+        const response = await fetch(`/api/orders/${nalogUid}/refresh-region`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            if (data.regija_id && data.regija_naziv) {
+                regijaDisplay.innerHTML = `<span class="badge badge-region">${data.regija_naziv}</span>`;
+                
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    ${data.message}<br>
+                    Regija: <strong>${data.regija_naziv}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                const container = document.getElementById('orderDetail');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                // Auto-dismiss after 3 seconds
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 3000);
+            } else {
+                regijaDisplay.innerHTML = '-';
+                
+                // Show warning message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    ${data.message}<br>
+                    Provjeri da li je poštanski broj mapiran na regiju u <a href="/config/postal-codes">Poštanskim brojevima</a>.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                const container = document.getElementById('orderDetail');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            }
+        } else {
+            regijaDisplay.innerHTML = originalContent;
+            
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                Greška: ${data.detail || 'Nepoznata greška'}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            const container = document.getElementById('orderDetail');
+            container.insertBefore(alertDiv, container.firstChild);
+        }
+    } catch (error) {
+        regijaDisplay.innerHTML = originalContent;
+        console.error('Error:', error);
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            Greška: ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        const container = document.getElementById('orderDetail');
+        container.insertBefore(alertDiv, container.firstChild);
+    }
+}
+</script>
+{% endblock %}

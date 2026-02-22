@@ -1,0 +1,234 @@
+.geo-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+}
+
+.geo-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 480px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: geo-modal-in 0.2s ease-out;
+}
+
+@keyframes geo-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.geo-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 12px 12px 0 0;
+}
+
+.geo-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.geo-modal-icon {
+  font-size: 20px;
+}
+
+.geo-modal-partner {
+  padding: 14px 20px;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+}
+
+.geo-modal-partner-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 4px;
+}
+
+.geo-modal-partner-address {
+  font-size: 13px;
+  color: #3b82f6;
+}
+
+.geo-modal-section {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.geo-modal-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.geo-modal-loading {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 8px 0;
+}
+
+.geo-modal-coords-display {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.geo-modal-coord-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.geo-modal-coord-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  width: 65px;
+}
+
+.geo-modal-coord-value {
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #1e293b;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+
+.geo-modal-coord-value.null {
+  color: #ef4444;
+  background: #fef2f2;
+  font-weight: 600;
+}
+
+.geo-modal-provider-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.provider-manual {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.provider-tomtom {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.provider-nominatim,
+.provider-osrm,
+.provider-ors,
+.provider-google,
+.provider-unknown {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.geo-modal-actions-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.geo-modal-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+  transition: all 0.15s;
+}
+
+.geo-modal-action-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.geo-modal-action-btn.danger {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.geo-modal-action-btn.danger:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.geo-action-icon {
+  font-size: 16px;
+}
+
+.geo-modal-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.geo-modal-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.geo-modal-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.geo-modal-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.geo-modal-footer {
+  padding: 14px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
+}

@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+
+{% block title %}Logistička Pravila - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Upravljanje Logističkim Pravilima</h1>
+<hr>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Lista logističkih pravila</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-circle"></i> Dodaj
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Naziv</th>
+                        <th>Regija</th>
+                        <th>Grupa artikla</th>
+                        <th>Masa (kg)</th>
+                        <th>Volumen (m³)</th>
+                        <th>Tip vozila</th>
+                        <th>Prioritet</th>
+                        <th>Aktivan</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in rules %}
+                    <tr>
+                        <td>{{ rule.naziv_pravila or '-' }}</td>
+                        <td>
+                            {% for regija in regije %}
+                                {% if regija.regija_id == rule.regija_id %}
+                                    {{ regija.naziv_regije }}
+                                {% endif %}
+                            {% endfor %}
+                            {% if not rule.regija_id %}Sve{% endif %}
+                        </td>
+                        <td>
+                            {% for grupa in grupe %}
+                                {% if grupa.grupa_artikla_uid == rule.grupa_artikla_uid %}
+                                    {{ grupa.grupa_artikla }}
+                                {% endif %}
+                            {% endfor %}
+                            {% if not rule.grupa_artikla_uid %}Sve{% endif %}
+                        </td>
+                        <td>
+                            {% if rule.min_masa or rule.max_masa %}
+                                {{ rule.min_masa or '0' }} - {{ rule.max_masa or '∞' }}
+                            {% else %}
+                                Sve
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if rule.min_volumen or rule.max_volumen %}
+                                {{ rule.min_volumen or '0' }} - {{ rule.max_volumen or '∞' }}
+                            {% else %}
+                                Sve
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if rule.vozilo_tip == 'KAMION' %}badge-kamion{% else %}badge-kombi{% endif %}">
+                                {{ rule.vozilo_tip }}
+                            </span>
+                        </td>
+                        <td>{{ rule.prioritet }}</td>
+                        <td>
+                            {% if rule.aktivan %}
+                            <span class="badge bg-success">Aktivan</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Neaktivan</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editRule({{ rule.pravilo_id }})">
+                                <i class="bi bi-pencil"></i> Uredi
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteRule({{ rule.pravilo_id }})">
+                                <i class="bi bi-trash"></i> Obriši
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dodaj logističko pravilo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Naziv pravila</label>
+                            <input type="text" class="form-control" name="naziv_pravila">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tip vozila *</label>
+                            <select class="form-select" name="vozilo_tip" required>
+                                <option value="">Odaberi...</option>
+                                <option value="KAMION">KAMION</option>
+                                <option value="KOMBI">KOMBI</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Regija</label>
+                            <select class="form-select" name="regija_id">
+                                <option value="">Sve regije</option>
+                                {% for regija in regije %}
+                                <option value="{{ regija.regija_id }}">{{ regija.naziv_regije }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Grupa artikla</label>
+                            <select class="form-select" name="grupa_artikla_uid">
+                                <option value="">Sve grupe</option>
+                                {% for grupa in grupe %}
+                                <option value="{{ grupa.grupa_artikla_uid }}">{{ grupa.grupa_artikla }} - {{ grupa.grupa_artikla_naziv }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Min masa (kg)</label>
+                            <input type="number" step="0.01" class="form-control" name="min_masa">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Max masa (kg)</label>
+                            <input type="number" step="0.01" class="form-control" name="max_masa">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Min volumen (m³)</label>
+                            <input type="number" step="0.01" class="form-control" name="min_volumen">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Max volumen (m³)</label>
+                            <input type="number" step="0.01" class="form-control" name="max_volumen">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Kapacitet</label>
+                            <input type="number" step="0.01" class="form-control" name="kapacitet">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prioritet</label>
+                            <input type="number" class="form-control" name="prioritet" value="100">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="aktivan" checked>
+                                <label class="form-check-label">Aktivan</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Uredi logističko pravilo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" name="pravilo_id" id="edit_pravilo_id">
+                <div class="modal-body" id="editModalBody">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Spremi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const rules = {{ rules | tojson }};
+const regije = {{ regije | tojson }};
+const grupe = {{ grupe | tojson }};
+
+function editRule(pravilo_id) {
+    const rule = rules.find(r => r.pravilo_id === pravilo_id);
+    if (!rule) return;
+    
+    document.getElementById('edit_pravilo_id').value = pravilo_id;
+    
+    // Build edit form HTML (similar to add form)
+    const html = `
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Naziv pravila</label>
+                <input type="text" class="form-control" name="naziv_pravila" value="${rule.naziv_pravila || ''}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Tip vozila *</label>
+                <select class="form-select" name="vozilo_tip" required>
+                    <option value="KAMION" ${rule.vozilo_tip === 'KAMION' ? 'selected' : ''}>KAMION</option>
+                    <option value="KOMBI" ${rule.vozilo_tip === 'KOMBI' ? 'selected' : ''}>KOMBI</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Regija</label>
+                <select class="form-select" name="regija_id">
+                    <option value="">Sve regije</option>
+                    ${regije.map(r => `<option value="${r.regija_id}" ${r.regija_id === rule.regija_id ? 'selected' : ''}>${r.naziv_regije}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Grupa artikla</label>
+                <select class="form-select" name="grupa_artikla_uid">
+                    <option value="">Sve grupe</option>
+                    ${grupe.map(g => `<option value="${g.grupa_artikla_uid}" ${g.grupa_artikla_uid === rule.grupa_artikla_uid ? 'selected' : ''}>${g.grupa_artikla} - ${g.grupa_artikla_naziv}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Min masa (kg)</label>
+                <input type="number" step="0.01" class="form-control" name="min_masa" value="${rule.min_masa || ''}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Max masa (kg)</label>
+                <input type="number" step="0.01" class="form-control" name="max_masa" value="${rule.max_masa || ''}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Min volumen (m³)</label>
+                <input type="number" step="0.01" class="form-control" name="min_volumen" value="${rule.min_volumen || ''}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Max volumen (m³)</label>
+                <input type="number" step="0.01" class="form-control" name="max_volumen" value="${rule.max_volumen || ''}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Kapacitet</label>
+                <input type="number" step="0.01" class="form-control" name="kapacitet" value="${rule.kapacitet || ''}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Prioritet</label>
+                <input type="number" class="form-control" name="prioritet" value="${rule.prioritet || 100}">
+            </div>
+            <div class="col-md-12 mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="aktivan" ${rule.aktivan ? 'checked' : ''}>
+                    <label class="form-check-label">Aktivan</label>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('editModalBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function deleteRule(pravilo_id) {
+    if (!confirm('Jeste li sigurni da želite obrisati pravilo?')) {
+        return;
+    }
+    
+    fetch(`/api/logistics/rules/${pravilo_id}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri brisanju');
+        }
+    });
+}
+
+document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    for (const [key, value] of formData.entries()) {
+        if (key === 'aktivan') {
+            data[key] = true;
+        } else if (value && (key.includes('masa') || key.includes('volumen') || key.includes('kapacitet'))) {
+            data[key] = parseFloat(value);
+        } else if (value && key === 'prioritet') {
+            data[key] = parseInt(value);
+        } else if (value && key === 'regija_id') {
+            data[key] = parseInt(value);
+        } else if (value) {
+            data[key] = value;
+        }
+    }
+    
+    if (!data.aktivan) {
+        data.aktivan = false;
+    }
+    
+    fetch('/api/logistics/rules', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri dodavanju');
+        }
+    });
+});
+
+document.getElementById('editForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const pravilo_id = formData.get('pravilo_id');
+    const data = {};
+    
+    for (const [key, value] of formData.entries()) {
+        if (key === 'pravilo_id') continue;
+        if (key === 'aktivan') {
+            data[key] = true;
+        } else if (value && (key.includes('masa') || key.includes('volumen') || key.includes('kapacitet'))) {
+            data[key] = parseFloat(value);
+        } else if (value && key === 'prioritet') {
+            data[key] = parseInt(value);
+        } else if (value && key === 'regija_id') {
+            data[key] = parseInt(value);
+        } else if (value) {
+            data[key] = value;
+        }
+    }
+    
+    if (!data.aktivan) {
+        data.aktivan = false;
+    }
+    
+    fetch(`/api/logistics/rules/${pravilo_id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri ažuriranju');
+        }
+    });
+});
+</script>
+{% endblock %}

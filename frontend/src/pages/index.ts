@@ -1,0 +1,6 @@
+export { default as Dashboard } from './Dashboard'
+export { default as RoutingPage } from './RoutingPage'
+export { default as OrdersPage } from './OrdersPage'
+export { default as VehiclesPage } from './VehiclesPage'
+export { default as RegionsPage } from './RegionsPage'
+export { default as SettingsPage } from './SettingsPage'

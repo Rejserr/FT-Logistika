@@ -1,0 +1,106 @@
+.warehouses-page { padding: 24px; }
+.wh-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.wh-header h1 { font-size: 24px; font-weight: 600; color: var(--text-primary); margin: 0; }
+
+.wh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+.wh-card { padding: 20px; position: relative; }
+.wh-card.inactive { opacity: 0.5; }
+.wh-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.wh-type-badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: rgba(59,130,246,0.1); color: #60a5fa; }
+.wh-code { font-family: monospace; font-size: 14px; font-weight: 700; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 8px; border-radius: 4px; }
+.wh-card h3 { margin: 4px 0 8px; font-size: 16px; color: var(--text-primary); }
+.wh-address { font-size: 13px; color: var(--text-secondary); margin: 0 0 12px; }
+.wh-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.wh-coords { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.wh-edit-btn { position: absolute; top: 12px; right: 12px; background: none; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--text-secondary); }
+.wh-edit-btn:hover { background: var(--bg-hover); }
+
+/* Modal */
+.warehouses-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.warehouses-page .modal-content {
+  background: var(--bg-primary, #1e1e2e);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.warehouses-page .modal-content h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.wh-modal { max-width: 550px; width: 550px; max-height: 80vh; overflow-y: auto; }
+
+.wh-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wh-form-grid label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e2e8f0;
+  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wh-form-grid label.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #ffffff;
+  margin-top: 18px;
+}
+
+.wh-form-grid label.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+}
+
+.wh-form-grid input,
+.wh-form-grid select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 6px;
+  background: var(--bg-secondary, #2a2a3e);
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.wh-form-grid input::placeholder {
+  color: #94a3b8;
+}
+
+.warehouses-page .modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-color, #444);
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.warehouses-page .modal-error {
+  color: #f87171;
+  font-size: 13px;
+  margin-top: 8px;
+}

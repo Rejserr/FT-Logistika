@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Vozila - OptimoRout{% endblock %}
+
+{% block content %}
+<h1>Upravljanje Vozilima</h1>
+<hr>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Lista vozila</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-circle"></i> Dodaj vozilo
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Aktivno</th>
+                        <th>Registracija</th>
+                        <th>Oznaka</th>
+                        <th>Tip</th>
+                        <th>Profil rutiranja</th>
+                        <th>Masa [kg]</th>
+                        <th>Volumen [m³]</th>
+                        <th>Paleta</th>
+                        <th>Regije</th>
+                        <th>Akcije</th>
+                    </tr>
+                </thead>
+                <tbody id="vehiclesTableBody">
+                    {% for vehicle in vehicles %}
+                    <tr>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" {% if vehicle.aktivan %}checked{% endif %} 
+                                       onchange="toggleVehicleActive({{ vehicle.vozilo_id }}, this.checked)">
+                            </div>
+                        </td>
+                        <td><strong>{{ vehicle.registracija }}</strong></td>
+                        <td>{{ vehicle.oznaka or '-' }}</td>
+                        <td>
+                            <span class="badge {% if vehicle.tip == 'KAMION' %}badge-kamion{% else %}badge-kombi{% endif %}">
+                                {{ vehicle.tip }}
+                            </span>
+                        </td>
+                        <td>{{ vehicle.profil_rutiranja or 'Default' }}</td>
+                        <td>{{ vehicle.masa_kg or '-' }}</td>
+                        <td>{{ vehicle.volumen_m3 or '-' }}</td>
+                        <td>{{ vehicle.paleta or '-' }}</td>
+                        <td>
+                            {% if vehicle.regije %}
+                                {% for regija in vehicle.regije %}
+                                    <span class="badge badge-region">{{ regija.naziv_regije }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editVehicle({{ vehicle.vozilo_id }})">
+                                <i class="bi bi-pencil"></i> Uredi
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteVehicle({{ vehicle.vozilo_id }})">
+                                <i class="bi bi-trash"></i> Obriši
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dodaj vozilo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Registracija *</label>
+                            <input type="text" class="form-control" name="registracija" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Oznaka</label>
+                            <input type="text" class="form-control" name="oznaka">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tip vozila *</label>
+                            <select class="form-select" name="tip" required>
+                                <option value="">Odaberi...</option>
+                                <option value="KAMION">KAMION</option>
+                                <option value="KOMBI">KOMBI</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Profil rutiranja</label>
+                            <input type="text" class="form-control" name="profil_rutiranja" value="Default">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Masa [kg]</label>
+                            <input type="number" step="0.01" class="form-control" name="masa_kg">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Volumen [m³]</label>
+                            <input type="number" step="0.01" class="form-control" name="volumen_m3">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Paleta</label>
+                            <input type="number" class="form-control" name="paleta">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Regije (možeš odabrati više)</label>
+                        <select class="form-select" name="regija_ids" multiple size="5">
+                            {% for regija in regije %}
+                            <option value="{{ regija.regija_id }}">{{ regija.naziv_regije }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Drži Ctrl (Cmd na Mac) za odabir više regija</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aktivan" id="add_aktivan" checked>
+                            <label class="form-check-label" for="add_aktivan">
+                                Aktivan
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Uredi vozilo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" name="vozilo_id" id="edit_vozilo_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Registracija *</label>
+                            <input type="text" class="form-control" name="registracija" id="edit_registracija" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Oznaka</label>
+                            <input type="text" class="form-control" name="oznaka" id="edit_oznaka">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tip vozila *</label>
+                            <select class="form-select" name="tip" id="edit_tip" required>
+                                <option value="KAMION">KAMION</option>
+                                <option value="KOMBI">KOMBI</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Profil rutiranja</label>
+                            <input type="text" class="form-control" name="profil_rutiranja" id="edit_profil_rutiranja">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Masa [kg]</label>
+                            <input type="number" step="0.01" class="form-control" name="masa_kg" id="edit_masa_kg">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Volumen [m³]</label>
+                            <input type="number" step="0.01" class="form-control" name="volumen_m3" id="edit_volumen_m3">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Paleta</label>
+                            <input type="number" class="form-control" name="paleta" id="edit_paleta">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Regije (možeš odabrati više)</label>
+                        <select class="form-select" name="regija_ids" id="edit_regija_ids" multiple size="5">
+                            {% for regija in regije %}
+                            <option value="{{ regija.regija_id }}">{{ regija.naziv_regije }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Drži Ctrl (Cmd na Mac) za odabir više regija</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aktivan" id="edit_aktivan">
+                            <label class="form-check-label" for="edit_aktivan">
+                                Aktivan
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-primary">Spremi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const vehicles = {{ vehicles | tojson }};
+const regije = {{ regije | tojson }};
+
+function editVehicle(vozilo_id) {
+    const vehicle = vehicles.find(v => v.vozilo_id === vozilo_id);
+    if (!vehicle) return;
+    
+    document.getElementById('edit_vozilo_id').value = vehicle.vozilo_id;
+    document.getElementById('edit_registracija').value = vehicle.registracija;
+    document.getElementById('edit_oznaka').value = vehicle.oznaka || '';
+    document.getElementById('edit_tip').value = vehicle.tip;
+    document.getElementById('edit_profil_rutiranja').value = vehicle.profil_rutiranja || 'Default';
+    document.getElementById('edit_masa_kg').value = vehicle.masa_kg || '';
+    document.getElementById('edit_volumen_m3').value = vehicle.volumen_m3 || '';
+    document.getElementById('edit_paleta').value = vehicle.paleta || '';
+    document.getElementById('edit_aktivan').checked = vehicle.aktivan;
+    
+    // Set selected regije
+    const regijaSelect = document.getElementById('edit_regija_ids');
+    Array.from(regijaSelect.options).forEach(option => {
+        option.selected = vehicle.regije.some(r => r.regija_id === parseInt(option.value));
+    });
+    
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function deleteVehicle(vozilo_id) {
+    if (!confirm('Jeste li sigurni da želite obrisati vozilo?')) {
+        return;
+    }
+    
+    fetch(`/api/vehicles/${vozilo_id}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Greška pri brisanju');
+        }
+    });
+}
+
+function toggleVehicleActive(vozilo_id, aktivan) {
+    fetch(`/api/vehicles/${vozilo_id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ aktivan: aktivan })
+    })
+    .then(response => {
+        if (!response.ok) {
+            alert('Greška pri ažuriranju');
+            location.reload();
+        }
+    });
+}
+
+document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const selectedRegije = Array.from(formData.getAll('regija_ids')).map(id => parseInt(id));
+    
+    const data = {
+        registracija: formData.get('registracija'),
+        oznaka: formData.get('oznaka') || null,
+        tip: formData.get('tip'),
+        profil_rutiranja: formData.get('profil_rutiranja') || 'Default',
+        masa_kg: formData.get('masa_kg') ? parseFloat(formData.get('masa_kg')) : null,
+        volumen_m3: formData.get('volumen_m3') ? parseFloat(formData.get('volumen_m3')) : null,
+        paleta: formData.get('paleta') ? parseInt(formData.get('paleta')) : null,
+        aktivan: formData.get('aktivan') === 'on',
+        regija_ids: selectedRegije
+    };
+    
+    fetch('/api/vehicles/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            response.json().then(data => alert('Greška: ' + (data.detail || 'Nepoznata greška')));
+        }
+    });
+});
+
+document.getElementById('editForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const vozilo_id = parseInt(formData.get('vozilo_id'));
+    const selectedRegije = Array.from(formData.getAll('regija_ids')).map(id => parseInt(id));
+    
+    const data = {
+        registracija: formData.get('registracija'),
+        oznaka: formData.get('oznaka') || null,
+        tip: formData.get('tip'),
+        profil_rutiranja: formData.get('profil_rutiranja') || 'Default',
+        masa_kg: formData.get('masa_kg') ? parseFloat(formData.get('masa_kg')) : null,
+        volumen_m3: formData.get('volumen_m3') ? parseFloat(formData.get('volumen_m3')) : null,
+        paleta: formData.get('paleta') ? parseInt(formData.get('paleta')) : null,
+        aktivan: formData.get('aktivan') === 'on',
+        regija_ids: selectedRegije
+    };
+    
+    fetch(`/api/vehicles/${vozilo_id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            response.json().then(data => alert('Greška: ' + (data.detail || 'Nepoznata greška')));
+        }
+    });
+});
+</script>
+{% endblock %}
