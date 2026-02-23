@@ -344,7 +344,7 @@ export function DataTable<T>({
             placeholder={searchPlaceholder}
             value={globalFilter}
             onChange={(e) => { setGlobalFilter(e.target.value); setPage(0) }}
-            className="pl-9 bg-white dark:bg-card border-slate-200 dark:border-border shadow-premium"
+            className="pl-9 bg-white/60 backdrop-blur-xl border border-white/80 dark:bg-card dark:border-border"
           />
         </div>
 
@@ -364,16 +364,16 @@ export function DataTable<T>({
           {showColumnPicker && (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium">
+                <Button variant="outline" size="sm" className="bg-white/60 backdrop-blur-xl border border-white/80 dark:bg-card dark:border-border">
                   <Columns3 className="mr-1 h-4 w-4" />
                   Kolone
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-52 p-0" sideOffset={4}>
-                <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+              <PopoverContent align="end" className="w-52 p-0 bg-white/80 backdrop-blur-xl border border-white/60 dark:bg-card dark:border-border" sideOffset={4}>
+                <div className="flex items-center justify-between px-3 py-2 border-b border-white/40 dark:border-border">
                   <span className="text-xs font-medium">Prikaži kolone</span>
                   <PopoverClose asChild>
-                    <button className="rounded-sm p-0.5 hover:bg-accent transition-colors">
+                    <button className="rounded-sm p-0.5 hover:bg-white/60 dark:hover:bg-accent transition-colors">
                       <X className="h-4 w-4" />
                     </button>
                   </PopoverClose>
@@ -384,7 +384,7 @@ export function DataTable<T>({
                     return (
                       <div
                         key={col.key}
-                        className={`flex items-center gap-2 rounded px-2 py-1.5 hover:bg-accent cursor-pointer ${checked ? "bg-primary/5" : ""}`}
+                        className={`flex items-center gap-2 rounded px-2 py-1.5 hover:bg-white/60 dark:hover:bg-accent cursor-pointer ${checked ? "bg-primary/5" : ""}`}
                         onClick={() => setVisibleCols((prev) => ({ ...prev, [col.key]: !checked }))}
                       >
                         <Checkbox
@@ -405,16 +405,16 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className={`overflow-auto ${fillHeight ? "flex-1 min-h-0" : ""}`}>
+      <div className={`min-h-0 overflow-auto rounded-[20px] pb-4 bg-transparent border-none ${fillHeight ? "flex-1" : ""}`}>
         <table
-          className="w-full caption-bottom text-sm"
-          style={{ borderCollapse: "separate", borderSpacing: "0 6px", minWidth: "max-content" }}
+          className="w-full caption-bottom text-sm border-separate border-spacing-y-2"
+          style={{ minWidth: "max-content" }}
         >
           <TableHeader>
-            <tr className="border-0 bg-transparent shadow-none hover:bg-transparent">
+            <tr className="bg-transparent shadow-none border-none hover:shadow-none hover:bg-transparent">
               {selectedRows && onSelectRows && getRowId && (
                 <TableHead
-                  className={`w-10 bg-transparent ${fillHeight ? "sticky top-0 z-20 bg-[#F4F8FB] dark:bg-background" : ""}`}
+                  className={`w-10 bg-transparent pt-2 pb-4 border-none ${fillHeight ? "sticky top-0 z-20" : ""}`}
                   style={{ width: 40 }}
                 >
                   <input
@@ -439,8 +439,8 @@ export function DataTable<T>({
                   <TableHead
                     key={col.key}
                     style={colStyle}
-                    className={`select-none relative bg-transparent ${
-                      fillHeight ? "sticky top-0 z-20 bg-[#F4F8FB] dark:bg-background" : ""
+                    className={`select-none relative bg-transparent pt-2 pb-4 border-none ${
+                      fillHeight ? "sticky top-0 z-20" : ""
                     } ${dragOverCol === col.key ? "bg-primary/10 border-l-2 border-primary" : ""}`}
                     draggable
                     onDragStart={() => handleColDragStart(col.key)}
@@ -498,10 +498,10 @@ export function DataTable<T>({
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow className="bg-transparent shadow-none hover:bg-transparent hover:translate-y-0 hover:shadow-none">
+              <TableRow className="shadow-none border-none bg-transparent hover:bg-transparent hover:translate-y-0 hover:shadow-none">
                 <TableCell
                   colSpan={columns.length + (selectedRows ? 1 : 0)}
-                  className="h-32 text-center text-muted-foreground"
+                  className="bg-white/40 backdrop-blur-md rounded-xl border border-white/60 text-center h-24 text-muted-foreground dark:bg-card/40 dark:border-border/40"
                 >
                   <div className="flex items-center justify-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -510,10 +510,10 @@ export function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : paged.length === 0 ? (
-              <TableRow className="bg-transparent shadow-none hover:bg-transparent hover:translate-y-0 hover:shadow-none">
+              <TableRow className="shadow-none border-none bg-transparent hover:bg-transparent hover:translate-y-0 hover:shadow-none">
                 <TableCell
                   colSpan={columns.length + (selectedRows ? 1 : 0)}
-                  className="h-32 text-center text-muted-foreground"
+                  className="bg-white/40 backdrop-blur-md rounded-xl border border-white/60 text-center h-24 text-muted-foreground dark:bg-card/40 dark:border-border/40"
                 >
                   {emptyMessage}
                 </TableCell>
@@ -531,9 +531,9 @@ export function DataTable<T>({
                     className={`
                       ${onRowClick ? "cursor-pointer" : ""}
                       ${hasHighlight
-                        ? `border-l-[4px] border-l-rose-400 bg-rose-50/50 dark:bg-rose-950/20 dark:border-l-rose-500 shadow-row hover:-translate-y-[1px] hover:shadow-row-hover`
+                        ? "criteria-highlight"
                         : isSelected
-                          ? "bg-blue-50/60 dark:bg-muted shadow-row hover:-translate-y-[1px] hover:shadow-row-hover"
+                          ? "bg-blue-50/70 dark:bg-muted ring-1 ring-primary/20"
                           : ""
                       }
                     `}
@@ -575,7 +575,7 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-slate-500 shrink-0">
+      <div className="flex items-center justify-between text-sm text-slate-500 shrink-0 bg-white/60 backdrop-blur-xl border border-white/80 rounded-[1.25rem] px-4 py-3 mt-0 shadow-[0_8px_30px_rgba(100,116,139,0.06)] dark:bg-card/60 dark:border-border/60">
         <div className="flex items-center gap-4">
           <span>
             {sorted.length > 0
@@ -585,7 +585,7 @@ export function DataTable<T>({
           <select
             value={pageSize}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0) }}
-            className="h-8 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card px-2 text-sm text-foreground shadow-premium"
+            className="h-8 rounded-lg border border-white/60 dark:border-border bg-white/50 dark:bg-card px-2 text-sm text-foreground backdrop-blur-sm"
           >
             {[25, 50, 100, 200].map((n) => (
               <option key={n} value={n}>{n} / str.</option>
@@ -594,17 +594,17 @@ export function DataTable<T>({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage === 0} onClick={() => setPage(0)}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-white/60 dark:border-border bg-white/50 dark:bg-card backdrop-blur-sm" disabled={safePage === 0} onClick={() => setPage(0)}>
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-white/60 dark:border-border bg-white/50 dark:bg-card backdrop-blur-sm" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="px-3 text-foreground font-medium">{safePage + 1} / {totalPages}</span>
-          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-white/60 dark:border-border bg-white/50 dark:bg-card backdrop-blur-sm" disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage >= totalPages - 1} onClick={() => setPage(totalPages - 1)}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-white/60 dark:border-border bg-white/50 dark:bg-card backdrop-blur-sm" disabled={safePage >= totalPages - 1} onClick={() => setPage(totalPages - 1)}>
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>

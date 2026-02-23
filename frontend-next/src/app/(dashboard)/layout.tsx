@@ -21,13 +21,13 @@ export default function DashboardLayout({
   return (
     <ProtectedRoute>
       <SidebarProvider
-        className="!h-svh"
+        className="!h-svh bg-transparent"
         open={sidebarOpen}
         onOpenChange={handleOpenChange}
       >
         <AppSidebar />
-        <SidebarInset className="bg-[#F4F8FB] dark:bg-background overflow-hidden">
-          <div className="flex flex-1 flex-col min-h-0">
+        <SidebarInset className="bg-transparent overflow-hidden p-4 md:p-8">
+          <div className="flex flex-1 flex-col min-h-0 bg-transparent h-full w-full">
             {children}
           </div>
         </SidebarInset>
