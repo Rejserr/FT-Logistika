@@ -406,7 +406,7 @@ export default function OrdersPage() {
             emptyMessage="Nema naloga. Pokrenite sinkronizaciju."
             rowClassName={(row) =>
               criteriaOrderUids.has(row.nalog_prodaje_uid)
-                ? "bg-red-100 hover:bg-red-200 dark:bg-red-950/40 dark:hover:bg-red-900/50"
+                ? "criteria-highlight"
                 : ""
             }
           />
@@ -744,7 +744,7 @@ function OrderDetailPanel({ nalogUid, onClose, criteriaArtiklSet }: { nalogUid: 
                   </TableHeader>
                   <TableBody>
                     {details.map((item, idx) => (
-                      <TableRow key={item.stavka_uid || idx} className={`${item.artikl && criteriaArtiklSet.has(item.artikl) ? "bg-red-100 hover:bg-red-200 dark:bg-red-950/40 dark:hover:bg-red-900/50" : "hover:bg-muted/30"}`}>
+                      <TableRow key={item.stavka_uid || idx} className={`${item.artikl && criteriaArtiklSet.has(item.artikl) ? "border-l-[4px] border-l-rose-400 bg-rose-50/50 dark:bg-rose-950/20 dark:border-l-rose-500" : ""}`}>
                         <TableCell className="text-xs py-1.5 font-mono">{item.artikl ?? "—"}</TableCell>
                         <TableCell className="text-xs py-1.5 max-w-[160px] truncate">{item.artikl_naziv_kratki ?? item.opis ?? "—"}</TableCell>
                         <TableCell className="text-xs py-1.5 text-right font-medium">{item.kolicina != null ? Number(item.kolicina).toFixed(0) : "—"}</TableCell>

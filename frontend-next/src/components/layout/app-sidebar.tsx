@@ -166,8 +166,8 @@ export function AppSidebar() {
                           tooltip={item.label}
                           className={
                             isActive
-                              ? "bg-white text-primary font-semibold hover:bg-white data-[active=true]:bg-white data-[active=true]:text-primary dark:bg-primary/10 dark:text-primary dark:shadow-none dark:hover:bg-primary/15 dark:data-[active=true]:bg-primary/10 dark:data-[active=true]:text-primary"
-                              : "text-sidebar-foreground hover:bg-white/60 hover:text-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
+                              ? "rounded-full bg-white text-primary font-semibold shadow-none hover:bg-white data-[active=true]:bg-white data-[active=true]:text-primary dark:bg-primary/10 dark:text-primary dark:shadow-none dark:hover:bg-primary/15 dark:data-[active=true]:bg-primary/10 dark:data-[active=true]:text-primary"
+                              : "rounded-full text-slate-500 hover:bg-white/60 hover:text-foreground dark:text-sidebar-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
                           }
                         >
                           <a

@@ -9,6 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -17,6 +18,12 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -34,69 +41,97 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  
-  /* VELIKA ZAOBLJENJA ZA MEKANI IZGLED */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
 }
 
 /* ═══════════════════════════════════════════
-   PREMIUM DRIBBBLE SOFT UI THEME
+   LIGHT THEME — Premium Soft Dashboard
    ═══════════════════════════════════════════ */
 :root {
-  --radius: 1.25rem;
-  
-  /* Pozadina: Jako, jako nježna plava (skoro bijela) - TOČNO s reference */
-  --background: #F4F8FB; 
-  --foreground: #334155; /* Tamno plavo-sivi tekst */
-  
-  /* Kartice: Apsolutno bijele */
+  --radius: 0.75rem;
+  --background: #F3F8FF;
+  --foreground: #1E293B;
   --card: #FFFFFF;
-  --card-foreground: #334155;
+  --card-foreground: #1E293B;
   --popover: #FFFFFF;
-  --popover-foreground: #334155;
-  
-  /* Primarna: Živahna plava s Dribbblea */
-  --primary: #4A8CFF; 
+  --popover-foreground: #1E293B;
+  --primary: #3B82F6;
   --primary-foreground: #FFFFFF;
-  
-  /* Sekundarna: Zagasito plava za bedževe i detalje */
-  --secondary: #E8F1FC;
-  --secondary-foreground: #4A8CFF;
-  
-  /* Muted: Super nježno plavkasto siva */
-  --muted: #F8FAFC;
-  --muted-foreground: #94A3B8;
-  
-  /* Accent: Kao hover boja u tablicama */
-  --accent: #F1F6FC;
+  --secondary: #EDF2F7;
+  --secondary-foreground: #1E293B;
+  --muted: #EDF2F7;
+  --muted-foreground: #64748B;
+  --accent: #EDF2F7;
   --accent-foreground: #1E293B;
-  
-  --destructive: #FF5A5F;
+  --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  
-  /* BORDERI SU GOTOVO NEVIDLJIVI, SAMO DA DRŽE STRUKTURU */
   --border: #E2E8F0;
   --input: #E2E8F0;
-  --ring: #4A8CFF;
-  
-  /* Sidebar: Lijepa, dublja pastelno plava */
-  --sidebar: #EAF2F9;
+  --ring: #3B82F6;
+  --success: #10B981;
+  --success-foreground: #FFFFFF;
+  --warning: #F59E0B;
+  --warning-foreground: #FFFFFF;
+  --info: #3B82F6;
+  --info-foreground: #FFFFFF;
+  --chart-1: #3B82F6;
+  --chart-2: #10B981;
+  --chart-3: #F59E0B;
+  --chart-4: #8B5CF6;
+  --chart-5: #EF4444;
+  --sidebar: #E5F0FF;
   --sidebar-foreground: #64748B;
-  --sidebar-primary: #4A8CFF;
+  --sidebar-primary: #3B82F6;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #FFFFFF;
-  --sidebar-accent-foreground: #4A8CFF;
-  --sidebar-border: transparent; /* Nema okvira na sidebaru! */
-  --sidebar-ring: #4A8CFF;
+  --sidebar-accent-foreground: #3B82F6;
+  --sidebar-border: transparent;
+  --sidebar-ring: #3B82F6;
 }
 
-/* Dark mode ovdje možemo ignorirati za sad */
+/* ═══════════════════════════════════════════
+   DARK THEME — Deep Dark Mode
+   ═══════════════════════════════════════════ */
 .dark {
   --background: oklch(0.13 0.005 285);
   --foreground: oklch(0.95 0.005 285);
+  --card: oklch(0.15 0.005 285);
+  --card-foreground: oklch(0.95 0.005 285);
+  --popover: oklch(0.15 0.005 285);
+  --popover-foreground: oklch(0.95 0.005 285);
+  --primary: oklch(0.62 0.19 260);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.18 0.005 285);
+  --secondary-foreground: oklch(0.95 0.005 285);
+  --muted: oklch(0.18 0.005 285);
+  --muted-foreground: oklch(0.55 0.01 285);
+  --accent: oklch(0.18 0.005 285);
+  --accent-foreground: oklch(0.95 0.005 285);
+  --destructive: oklch(0.60 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.20 0.005 285);
+  --input: oklch(0.20 0.005 285);
+  --ring: oklch(0.62 0.19 260);
+  --sidebar: oklch(0.13 0.005 285);
+  --sidebar-foreground: oklch(0.75 0.01 285);
+  --sidebar-primary: oklch(0.62 0.19 260);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.18 0.005 285);
+  --sidebar-accent-foreground: oklch(0.95 0.005 285);
+  --sidebar-border: oklch(0.20 0.005 285);
+  --sidebar-ring: oklch(0.62 0.19 260);
 }
 
 @layer base {
@@ -105,44 +140,59 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* ═══════════════════════════════════════════
-   MAGIJA: Forsirani override Shadcn komponenti
-   Ovo popravlja Card i Table bez da mijenjaš .tsx fajlove!
-   ═══════════════════════════════════════════ */
-@layer components {
-  /* Forsira predivne sjene na sve kartice umjesto ružnih okvira */
-  [data-slot="card"], .rounded-xl.border {
-    border: none !important;
-    background-color: var(--card) !important;
-    box-shadow: 0px 8px 30px rgba(100, 116, 139, 0.08) !important;
-    border-radius: var(--radius) !important;
+@layer utilities {
+  .shadow-premium {
+    box-shadow: 0px 4px 20px rgba(148, 163, 184, 0.08);
   }
-  
-  /* Forsira da tabela opet izgleda kao tabela, ali mekano */
-  [data-slot="table-row"], tr {
-    border-bottom: 1px solid #F1F5F9 !important; /* Vraća linije da podaci ne bježe */
+  .shadow-premium-hover {
+    box-shadow: 0px 8px 20px rgba(100, 116, 139, 0.08);
   }
-  
-  /* Lijepi hover preko redova tabele */
-  [data-slot="table-row"]:hover, tr:hover {
-    background-color: #F8FAFC !important;
+  .shadow-row {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
   }
-  
-  /* Zaglavlje tabele */
-  [data-slot="table-head"], th {
-    text-transform: uppercase !important;
-    font-size: 0.7rem !important;
-    letter-spacing: 0.05em !important;
-    color: #94A3B8 !important;
-    border-bottom: 2px solid #E2E8F0 !important;
-    padding-bottom: 1rem !important;
+  .shadow-row-hover {
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.08);
   }
-  
-  /* Zaobljeni bedževi/statusi posvuda */
-  [data-slot="badge"] {
-    border-radius: 9999px !important; /* Pilula oblik */
+
+  .glass {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0px 4px 20px rgba(148, 163, 184, 0.08);
+    transition: box-shadow 200ms;
+  }
+  :is(.dark) .glass {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  }
+  .glass-hover:hover {
+    box-shadow: 0px 8px 20px rgba(100, 116, 139, 0.08);
+  }
+  :is(.dark) .glass-hover:hover {
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+  }
+
+  .card-elevated {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0px 4px 20px rgba(148, 163, 184, 0.08);
+    transition: box-shadow 200ms;
+  }
+  .card-elevated:hover {
+    box-shadow: 0px 8px 20px rgba(100, 116, 139, 0.08);
+  }
+  :is(.dark) .card-elevated {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  }
+  :is(.dark) .card-elevated:hover {
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
   }
 }

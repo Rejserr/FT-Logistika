@@ -26,7 +26,7 @@ export default function DashboardLayout({
         onOpenChange={handleOpenChange}
       >
         <AppSidebar />
-        <SidebarInset className="bg-background overflow-hidden">
+        <SidebarInset className="bg-[#F4F8FB] dark:bg-background overflow-hidden">
           <div className="flex flex-1 flex-col min-h-0">
             {children}
           </div>

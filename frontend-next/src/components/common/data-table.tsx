@@ -90,7 +90,6 @@ export function DataTable<T>({
   const [sortDir, setSortDir] = useState<SortDir>(null)
   const [page, setPage] = useState(0)
 
-  // Defaults for preference hook
   const defaultVisibleCols = useMemo(() => {
     const initial: Record<string, boolean> = {}
     columnDefs.forEach((c) => { initial[c.key] = c.visible !== false })
@@ -126,14 +125,12 @@ export function DataTable<T>({
     updatePrefs({ pageSize: size })
   }, [updatePrefs])
 
-  // Sync new columns to order
   useEffect(() => {
     const allKeys = columnDefs.map((c) => c.key)
     const missing = allKeys.filter((k) => !columnOrder.includes(k))
     if (missing.length > 0) setColumnOrder((prev) => [...prev, ...missing])
   }, [columnDefs, columnOrder])
 
-  // Ordered visible columns
   const columns = useMemo(() => {
     const visible = columnDefs.filter((c) => visibleCols[c.key] !== false)
     return columnOrder
@@ -153,7 +150,6 @@ export function DataTable<T>({
     []
   )
 
-  // Distinct values per column (cascading: each column sees data filtered by ALL OTHER active filters)
   const distinctValues = useMemo(() => {
     const map: Record<string, string[]> = {}
     const filterableColumns = columnDefs.filter((col) => col.filterable !== false)
@@ -191,7 +187,6 @@ export function DataTable<T>({
     return map
   }, [data, columnDefs, getCellValue, columnFilters, globalFilter, visibleCols])
 
-  // Filtering: empty set = no filter (show all), non-empty set = include only selected
   const filtered = useMemo(() => {
     let result = data
 
@@ -215,7 +210,6 @@ export function DataTable<T>({
     return result
   }, [data, globalFilter, columnFilters, columnDefs, getCellValue, visibleCols])
 
-  // Sorting
   const sorted = useMemo(() => {
     if (!sortKey || !sortDir) return filtered
     const col = columnDefs.find((c) => c.key === sortKey)
@@ -232,7 +226,6 @@ export function DataTable<T>({
     })
   }, [filtered, sortKey, sortDir, columnDefs, getCellValue])
 
-  // Pagination
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize))
   const safePage = Math.min(page, totalPages - 1)
   const paged = sorted.slice(safePage * pageSize, (safePage + 1) * pageSize)
@@ -249,7 +242,6 @@ export function DataTable<T>({
 
   const activeFilterCount = Object.values(columnFilters).filter((s) => s.size > 0).length
 
-  // Column drag reorder
   const dragColRef = useRef<string | null>(null)
   const [dragOverCol, setDragOverCol] = useState<string | null>(null)
 
@@ -275,7 +267,6 @@ export function DataTable<T>({
   }
   const handleColDragEnd = () => { setDragOverCol(null); dragColRef.current = null }
 
-  // Column resize
   const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null)
   const [resizingKey, setResizingKey] = useState<string | null>(null)
 
@@ -320,11 +311,9 @@ export function DataTable<T>({
     return { minWidth: defW || MIN_COL_WIDTH }
   }
 
-  // Select all on current page
   const allPageSelected =
     selectedRows && getRowId && paged.length > 0 && paged.every((r) => selectedRows.has(getRowId(r)))
 
-  // Filter actions
   const toggleFilterValue = (colKey: string, val: string) => {
     setColumnFilters((prev) => {
       const cur = prev[colKey] ? new Set(prev[colKey]) : new Set<string>()
@@ -346,16 +335,16 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={`flex flex-col gap-3 ${fillHeight ? "flex-1 min-h-0 overflow-hidden" : ""}`}>
+    <div className={`flex flex-col gap-4 ${fillHeight ? "flex-1 min-h-0 overflow-hidden" : ""}`}>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder={searchPlaceholder}
             value={globalFilter}
             onChange={(e) => { setGlobalFilter(e.target.value); setPage(0) }}
-            className="pl-9 bg-secondary/50 border-border"
+            className="pl-9 bg-white dark:bg-card border-slate-200 dark:border-border shadow-premium"
           />
         </div>
 
@@ -364,7 +353,7 @@ export function DataTable<T>({
             variant="ghost"
             size="sm"
             onClick={() => { setColumnFilters({}); setPage(0) }}
-            className="text-muted-foreground"
+            className="text-slate-500"
           >
             <X className="mr-1 h-3 w-3" />
             Očisti filtere ({activeFilterCount})
@@ -375,7 +364,7 @@ export function DataTable<T>({
           {showColumnPicker && (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="border-border">
+                <Button variant="outline" size="sm" className="border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium">
                   <Columns3 className="mr-1 h-4 w-4" />
                   Kolone
                 </Button>
@@ -416,12 +405,18 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className={`rounded-2xl border-none bg-white dark:bg-card dark:border dark:border-border overflow-auto shadow-premium ${fillHeight ? "flex-1 min-h-0" : ""}`}>
-        <table className="w-full caption-bottom text-sm" style={{ minWidth: "max-content" }}>
-          <TableHeader className={fillHeight ? "[&_tr]:border-b" : ""}>
-            <TableRow className="border-slate-100 dark:border-border hover:bg-transparent">
+      <div className={`overflow-auto ${fillHeight ? "flex-1 min-h-0" : ""}`}>
+        <table
+          className="w-full caption-bottom text-sm"
+          style={{ borderCollapse: "separate", borderSpacing: "0 6px", minWidth: "max-content" }}
+        >
+          <TableHeader>
+            <tr className="border-0 bg-transparent shadow-none hover:bg-transparent">
               {selectedRows && onSelectRows && getRowId && (
-                <TableHead className={`w-10 ${fillHeight ? "sticky top-0 z-20 bg-white dark:bg-card" : ""}`} style={{ width: 40 }}>
+                <TableHead
+                  className={`w-10 bg-transparent ${fillHeight ? "sticky top-0 z-20 bg-[#F4F8FB] dark:bg-background" : ""}`}
+                  style={{ width: 40 }}
+                >
                   <input
                     type="checkbox"
                     checked={allPageSelected || false}
@@ -444,8 +439,8 @@ export function DataTable<T>({
                   <TableHead
                     key={col.key}
                     style={colStyle}
-                    className={`text-xs font-medium text-muted-foreground uppercase tracking-wider select-none relative whitespace-nowrap ${
-                      fillHeight ? "sticky top-0 z-20 bg-white dark:bg-card" : ""
+                    className={`select-none relative bg-transparent ${
+                      fillHeight ? "sticky top-0 z-20 bg-[#F4F8FB] dark:bg-background" : ""
                     } ${dragOverCol === col.key ? "bg-primary/10 border-l-2 border-primary" : ""}`}
                     draggable
                     onDragStart={() => handleColDragStart(col.key)}
@@ -499,11 +494,11 @@ export function DataTable<T>({
                   </TableHead>
                 )
               })}
-            </TableRow>
+            </tr>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
+              <TableRow className="bg-transparent shadow-none hover:bg-transparent hover:translate-y-0 hover:shadow-none">
                 <TableCell
                   colSpan={columns.length + (selectedRows ? 1 : 0)}
                   className="h-32 text-center text-muted-foreground"
@@ -515,7 +510,7 @@ export function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : paged.length === 0 ? (
-              <TableRow>
+              <TableRow className="bg-transparent shadow-none hover:bg-transparent hover:translate-y-0 hover:shadow-none">
                 <TableCell
                   colSpan={columns.length + (selectedRows ? 1 : 0)}
                   className="h-32 text-center text-muted-foreground"
@@ -534,9 +529,13 @@ export function DataTable<T>({
                     key={rowId}
                     onClick={() => onRowClick?.(row)}
                     className={`
-                      border-border transition-colors
                       ${onRowClick ? "cursor-pointer" : ""}
-                      ${hasHighlight ? extraClass : isSelected ? "bg-primary/5" : "hover:bg-muted/30"}
+                      ${hasHighlight
+                        ? `border-l-[4px] border-l-rose-400 bg-rose-50/50 dark:bg-rose-950/20 dark:border-l-rose-500 shadow-row hover:-translate-y-[1px] hover:shadow-row-hover`
+                        : isSelected
+                          ? "bg-blue-50/60 dark:bg-muted shadow-row hover:-translate-y-[1px] hover:shadow-row-hover"
+                          : ""
+                      }
                     `}
                   >
                     {selectedRows && onSelectRows && getRowId && (
@@ -576,7 +575,7 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground shrink-0">
+      <div className="flex items-center justify-between text-sm text-slate-500 shrink-0">
         <div className="flex items-center gap-4">
           <span>
             {sorted.length > 0
@@ -586,7 +585,7 @@ export function DataTable<T>({
           <select
             value={pageSize}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0) }}
-            className="h-8 rounded-md border border-border bg-secondary/50 px-2 text-sm text-foreground"
+            className="h-8 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card px-2 text-sm text-foreground shadow-premium"
           >
             {[25, 50, 100, 200].map((n) => (
               <option key={n} value={n}>{n} / str.</option>
@@ -595,17 +594,17 @@ export function DataTable<T>({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage === 0} onClick={() => setPage(0)}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage === 0} onClick={() => setPage(0)}>
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="px-3 text-foreground font-medium">{safePage + 1} / {totalPages}</span>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages - 1} onClick={() => setPage(totalPages - 1)}>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-border bg-white dark:bg-card shadow-premium" disabled={safePage >= totalPages - 1} onClick={() => setPage(totalPages - 1)}>
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
@@ -616,8 +615,6 @@ export function DataTable<T>({
 
 /* ═══════════════════════════════════════════
    Column Filter (include-based)
-   Empty set = no filter (show all)
-   Non-empty set = show ONLY selected values
    ═══════════════════════════════════════════ */
 function ColumnFilter({
   colKey,
