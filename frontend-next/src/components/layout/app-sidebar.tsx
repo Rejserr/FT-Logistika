@@ -123,7 +123,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0 dark:border-r dark:border-sidebar-border">
       <SidebarHeader className="px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-soft dark:bg-primary/10 dark:text-primary">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white dark:bg-primary/10 dark:text-primary">
             <Truck className="h-5 w-5" />
           </div>
           {!collapsed && (
@@ -166,7 +166,7 @@ export function AppSidebar() {
                           tooltip={item.label}
                           className={
                             isActive
-                              ? "bg-white text-primary shadow-soft font-semibold hover:bg-white data-[active=true]:bg-white data-[active=true]:text-primary data-[active=true]:shadow-soft dark:bg-primary/10 dark:text-primary dark:shadow-none dark:hover:bg-primary/15 dark:data-[active=true]:bg-primary/10 dark:data-[active=true]:text-primary"
+                              ? "bg-white text-primary font-semibold hover:bg-white data-[active=true]:bg-white data-[active=true]:text-primary dark:bg-primary/10 dark:text-primary dark:shadow-none dark:hover:bg-primary/15 dark:data-[active=true]:bg-primary/10 dark:data-[active=true]:text-primary"
                               : "text-sidebar-foreground hover:bg-white/60 hover:text-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
                           }
                         >

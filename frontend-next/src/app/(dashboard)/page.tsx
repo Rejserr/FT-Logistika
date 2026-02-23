@@ -180,7 +180,7 @@ export default function DashboardPage() {
                   <Link
                     key={route.id}
                     href={`/routes/${route.id}`}
-                    className="group flex items-center justify-between rounded-xl p-3.5 transition-all duration-200 hover:bg-slate-50 hover:shadow-soft dark:hover:bg-muted/30"
+                    className="group flex items-center justify-between rounded-2xl p-3.5 transition-all duration-200 hover:bg-[#F8FAFC] dark:hover:bg-muted/30"
                   >
                     <div className="flex flex-col gap-1">
                       <span className="text-sm font-semibold text-slate-800 dark:text-foreground">

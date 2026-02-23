@@ -428,7 +428,7 @@ export default function OrdersPage() {
 
         {/* Detail panel - fills height, scrolls internally */}
         {selectedOrderUid && (
-          <div className="shrink-0 ml-2 rounded-2xl bg-white border border-white shadow-soft dark:bg-card dark:border-border dark:shadow-lg overflow-hidden flex flex-col" style={{ width: detailWidth }}>
+          <div className="shrink-0 ml-2 rounded-2xl bg-white border-none shadow-premium dark:bg-card dark:border dark:border-border dark:shadow-lg overflow-hidden flex flex-col" style={{ width: detailWidth }}>
             <OrderDetailPanel nalogUid={selectedOrderUid} onClose={() => setSelectedOrderUid(null)} criteriaArtiklSet={criteriaArtiklSet} />
           </div>
         )}

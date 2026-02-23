@@ -416,7 +416,7 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className={`rounded-2xl border border-white bg-white dark:bg-card dark:border-border overflow-auto shadow-soft ${fillHeight ? "flex-1 min-h-0" : ""}`}>
+      <div className={`rounded-2xl border-none bg-white dark:bg-card dark:border dark:border-border overflow-auto shadow-premium ${fillHeight ? "flex-1 min-h-0" : ""}`}>
         <table className="w-full caption-bottom text-sm" style={{ minWidth: "max-content" }}>
           <TableHeader className={fillHeight ? "[&_tr]:border-b" : ""}>
             <TableRow className="border-slate-100 dark:border-border hover:bg-transparent">
