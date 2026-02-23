@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery, useMutation } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
 import { StatCard } from "@/components/common/stat-card"
 import { StatusBadge } from "@/components/common/status-badge"
@@ -14,19 +14,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { toast } from "@/lib/toast"
+
 import {
   ordersApi,
   vehiclesApi,
   routesApi,
-  syncApi,
 } from "@/services/api"
 import {
   Package,
   Truck,
   Route,
   CheckCircle2,
-  RefreshCw,
   ArrowRight,
 } from "lucide-react"
 import Link from "next/link"
@@ -45,12 +43,6 @@ export default function DashboardPage() {
   const { data: routes, isLoading: routesLoading } = useQuery({
     queryKey: ["routes", { limit: 5 }],
     queryFn: () => routesApi.list({ limit: 5 }),
-  })
-
-  const syncMutation = useMutation({
-    mutationFn: () => syncApi.syncOrders(),
-    onSuccess: () => toast.success("Sinkronizacija pokrenuta", "Nalozi se sinkroniziraju u pozadini"),
-    onError: (error: Error) => toast.error("Greska pri sinkronizaciji", error.message),
   })
 
   const stats = [
@@ -85,15 +77,6 @@ export default function DashboardPage() {
       <PageHeader
         title="Dashboard"
         subtitle="Pregled stanja i brze akcije"
-        actions={
-          <Button
-            onClick={() => syncMutation.mutate()}
-            disabled={syncMutation.isPending}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${syncMutation.isPending ? "animate-spin" : ""}`} />
-            Sync naloga
-          </Button>
-        }
       />
 
       {/* Bento Grid - Stats */}

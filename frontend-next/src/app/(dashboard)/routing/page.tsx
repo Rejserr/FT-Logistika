@@ -493,8 +493,8 @@ export default function RoutingPage() {
           </div>
           <ScrollArea className="flex-1">
             <div className="p-2">
-              {vehiclesByType.map((group) => (
-                <div key={group.tip?.id ?? "none"} className="mb-3">
+              {vehiclesByType.map((group, groupIdx) => (
+                <div key={`vtype-${group.tip?.id ?? "none"}-${groupIdx}`} className="mb-3">
                   <div className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                     {group.tip?.naziv || "Ostala"}
                   </div>

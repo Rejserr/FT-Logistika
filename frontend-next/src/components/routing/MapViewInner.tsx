@@ -111,11 +111,27 @@ function ResizeObserverHook() {
   const map = useMap()
   useEffect(() => {
     const container = map.getContainer()
+    if (!container) return
+
+    let rafId: number | null = null
     const observer = new ResizeObserver(() => {
-      map.invalidateSize()
+      if (rafId) cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        try {
+          if (container.isConnected && container.offsetWidth > 0) {
+            map.invalidateSize({ animate: false })
+          }
+        } catch {
+          // Leaflet may throw if internal DOM state is stale
+        }
+      })
     })
     observer.observe(container)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (rafId) cancelAnimationFrame(rafId)
+    }
   }, [map])
   return null
 }

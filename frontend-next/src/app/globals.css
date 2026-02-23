@@ -75,7 +75,7 @@
   --foreground: #F8FAFC;
   --card: rgba(15, 23, 42, 0.4);
   --card-foreground: #F8FAFC;
-  --popover: rgba(15, 23, 42, 0.8);
+  --popover: rgba(15, 23, 42, 0.95);
   --popover-foreground: #F8FAFC;
   --primary: #FF7E67;
   --primary-foreground: #FFFFFF;
@@ -160,6 +160,17 @@
     background: transparent !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+  }
+
+  /* Sticky header — neprozirna pozadina */
+  th.sticky {
+    background: #F4F8FB !important;
+  }
+  .dark th.sticky {
+    background: #0F172A !important;
   }
 
   [data-slot="table-cell"], td {
@@ -176,12 +187,9 @@
     border-spacing: 0 10px !important;
   }
 
-  /* PILULE BADGE */
+  /* PILULE BADGE — samo oblik, boje dolaze iz komponente */
   [data-slot="badge"] {
     border-radius: 9999px !important;
     padding: 4px 12px !important;
-    background: rgba(255, 255, 255, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.8) !important;
-    backdrop-filter: blur(8px);
   }
 }
