@@ -392,6 +392,9 @@ export const syncApi = {
 
   syncArtikli: () => request<SyncResponse>('/sync/artikli', { method: 'POST' }),
 
+  syncByRaspored: (data: { raspored_datum: string }) =>
+    request<SyncResponse>('/sync/orders-by-raspored', { method: 'POST', body: data }),
+
   status: (syncId: number) => request<SyncResponse>(`/sync/status/${syncId}`),
 }
 

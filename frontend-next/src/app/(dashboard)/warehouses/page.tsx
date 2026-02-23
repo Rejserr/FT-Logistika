@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/lib/toast"
-import { Warehouse, Pencil, Building2, Clock, Phone, Mail, Truck } from "lucide-react"
+import { Warehouse, Pencil, Building2, Clock, Phone, Mail, Truck, RefreshCw } from "lucide-react"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"
 
@@ -48,6 +48,7 @@ interface WarehouseType {
   kontakt_email: string | null
   max_vozila: number | null
   aktivan: boolean
+  sync_naloga: boolean
 }
 
 async function apiFetch<T>(url: string, opts: RequestInit = {}): Promise<T> {
@@ -76,6 +77,7 @@ const emptyForm = {
   tip: "store",
   is_central: false,
   aktivan: true,
+  sync_naloga: false,
   radno_vrijeme_od: "07:00",
   radno_vrijeme_do: "15:00",
   kontakt_telefon: "",
@@ -136,6 +138,7 @@ export default function WarehousesPage() {
       tip: w.tip,
       is_central: w.is_central,
       aktivan: w.aktivan,
+      sync_naloga: w.sync_naloga,
       radno_vrijeme_od: w.radno_vrijeme_od || "",
       radno_vrijeme_do: w.radno_vrijeme_do || "",
       kontakt_telefon: w.kontakt_telefon || "",
@@ -158,6 +161,7 @@ export default function WarehousesPage() {
       tip: form.tip,
       is_central: form.is_central,
       aktivan: form.aktivan,
+      sync_naloga: form.sync_naloga,
       radno_vrijeme_od: form.radno_vrijeme_od || null,
       radno_vrijeme_do: form.radno_vrijeme_do || null,
       kontakt_telefon: form.kontakt_telefon || null,
@@ -252,11 +256,19 @@ export default function WarehousesPage() {
                       </span>
                     )}
                   </div>
-                  <div className="text-muted-foreground text-xs">
-                    {w.lat && w.lng ? (
-                      <>Koordinate: {w.lat}, {w.lng}</>
-                    ) : (
-                      "Bez koordinata"
+                  <div className="flex items-center gap-2">
+                    <div className="text-muted-foreground text-xs flex-1">
+                      {w.lat && w.lng ? (
+                        <>Koordinate: {w.lat}, {w.lng}</>
+                      ) : (
+                        "Bez koordinata"
+                      )}
+                    </div>
+                    {w.sync_naloga && (
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/30">
+                        <RefreshCw className="mr-1 h-3 w-3" />
+                        Sync
+                      </Badge>
                     )}
                   </div>
                   {canManage && (
@@ -343,6 +355,17 @@ export default function WarehousesPage() {
                 <Label htmlFor="aktivan">Aktivno skladište</Label>
               </div>
             )}
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="sync_naloga"
+                checked={form.sync_naloga}
+                onCheckedChange={(c) => setForm({ ...form, sync_naloga: !!c })}
+              />
+              <Label htmlFor="sync_naloga" className="flex items-center gap-1">
+                <RefreshCw className="h-3.5 w-3.5 text-green-600" />
+                Sinkronizacija naloga
+              </Label>
+            </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Adresa</Label>
               <Input

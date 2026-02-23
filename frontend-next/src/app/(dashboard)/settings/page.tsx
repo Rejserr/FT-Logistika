@@ -99,6 +99,7 @@ const SYNC_LAST_KEY = "ft_sync_last_results"
 type SyncActionKey =
   | "refreshOrders"
   | "syncOrders"
+  | "syncByRaspored"
   | "syncPartners"
   | "syncArtikli"
 
@@ -106,30 +107,19 @@ function loadRunningJobs(): Record<
   SyncActionKey,
   SyncJobState | null
 > {
-  if (typeof window === "undefined")
-    return {
-      refreshOrders: null,
-      syncOrders: null,
-      syncPartners: null,
-      syncArtikli: null,
-    }
+  const empty: Record<SyncActionKey, null> = {
+    refreshOrders: null,
+    syncOrders: null,
+    syncByRaspored: null,
+    syncPartners: null,
+    syncArtikli: null,
+  }
+  if (typeof window === "undefined") return empty
   try {
     const raw = localStorage.getItem(SYNC_JOBS_KEY)
-    return raw
-      ? JSON.parse(raw)
-      : {
-          refreshOrders: null,
-          syncOrders: null,
-          syncPartners: null,
-          syncArtikli: null,
-        }
+    return raw ? { ...empty, ...JSON.parse(raw) } : empty
   } catch {
-    return {
-      refreshOrders: null,
-      syncOrders: null,
-      syncPartners: null,
-      syncArtikli: null,
-    }
+    return empty
   }
 }
 
@@ -144,30 +134,19 @@ function loadLastResults(): Record<
   SyncActionKey,
   SyncLastResult | null
 > {
-  if (typeof window === "undefined")
-    return {
-      refreshOrders: null,
-      syncOrders: null,
-      syncPartners: null,
-      syncArtikli: null,
-    }
+  const empty: Record<SyncActionKey, null> = {
+    refreshOrders: null,
+    syncOrders: null,
+    syncByRaspored: null,
+    syncPartners: null,
+    syncArtikli: null,
+  }
+  if (typeof window === "undefined") return empty
   try {
     const raw = localStorage.getItem(SYNC_LAST_KEY)
-    return raw
-      ? JSON.parse(raw)
-      : {
-          refreshOrders: null,
-          syncOrders: null,
-          syncPartners: null,
-          syncArtikli: null,
-        }
+    return raw ? { ...empty, ...JSON.parse(raw) } : empty
   } catch {
-    return {
-      refreshOrders: null,
-      syncOrders: null,
-      syncPartners: null,
-      syncArtikli: null,
-    }
+    return empty
   }
 }
 
@@ -479,11 +458,13 @@ export default function SettingsPage() {
   >({
     refreshOrders: null,
     syncOrders: null,
+    syncByRaspored: null,
     syncPartners: null,
     syncArtikli: null,
   })
   const [syncOrdersDateFrom, setSyncOrdersDateFrom] = useState("")
   const [syncOrdersDateTo, setSyncOrdersDateTo] = useState("")
+  const [syncRasporedDate, setSyncRasporedDate] = useState("")
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const { data: settings = [], isLoading: settingsLoading } = useQuery({
@@ -977,6 +958,20 @@ export default function SettingsPage() {
     if (isSyncRunning("syncArtikli")) return
     launchSync("syncArtikli", "Sinkronizacija artikala", () =>
       syncApi.syncArtikli()
+    )
+  }
+
+  const handleSyncByRaspored = () => {
+    if (isSyncRunning("syncByRaspored")) return
+    if (!syncRasporedDate) {
+      toast.warning(
+        "Odaberite datum",
+        "Molim odaberite datum rasporeda (isporuke)."
+      )
+      return
+    }
+    launchSync("syncByRaspored", "Sync po rasporedu", () =>
+      syncApi.syncByRaspored({ raspored_datum: syncRasporedDate })
     )
   }
 
@@ -2124,6 +2119,70 @@ export default function SettingsPage() {
                         : "Greška"}
                       {lastResults.syncOrders.message &&
                         `: ${lastResults.syncOrders.message}`}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sync po rasporedu */}
+                <div
+                  className={`rounded-lg border p-4 transition-colors ${
+                    isSyncRunning("syncByRaspored")
+                      ? "border-primary/50 bg-primary/5"
+                      : "border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {isSyncRunning("syncByRaspored") ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    ) : (
+                      <RefreshCw className="h-5 w-5 text-muted-foreground" />
+                    )}
+                    <h3 className="font-semibold">Sync po rasporedu</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Importira naloge iz ERP-a prema datumu rasporeda (isporuke).
+                    Gleda unazad 7 dana i uvozi naloge koji još ne postoje u bazi.
+                  </p>
+                  <div className="mb-3 space-y-1">
+                    <Label className="text-xs">Datum rasporeda</Label>
+                    <Input
+                      type="date"
+                      value={syncRasporedDate}
+                      onChange={(e) => setSyncRasporedDate(e.target.value)}
+                      disabled={isSyncRunning("syncByRaspored")}
+                      className="h-8 bg-secondary/50 border-border"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSyncByRaspored}
+                    disabled={isSyncRunning("syncByRaspored")}
+                    className="w-full"
+                  >
+                    {isSyncRunning("syncByRaspored")
+                      ? "U tijeku..."
+                      : "Pokreni sync po rasporedu"}
+                  </Button>
+                  {isSyncRunning("syncByRaspored") &&
+                    syncProgress.syncByRaspored && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {syncProgress.syncByRaspored}
+                      </p>
+                    )}
+                  {lastResults.syncByRaspored && (
+                    <div
+                      className={`mt-2 text-xs rounded p-2 ${
+                        lastResults.syncByRaspored.status === "COMPLETED"
+                          ? "bg-green-500/15 text-green-600"
+                          : "bg-destructive/10 text-destructive"
+                      }`}
+                    >
+                      {formatSyncTime(lastResults.syncByRaspored.finishedAt)}{" "}
+                      –{" "}
+                      {lastResults.syncByRaspored.status === "COMPLETED"
+                        ? "Uspješno"
+                        : "Greška"}
+                      {lastResults.syncByRaspored.message &&
+                        `: ${lastResults.syncByRaspored.message}`}
                     </div>
                   )}
                 </div>

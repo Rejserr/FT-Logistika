@@ -251,6 +251,7 @@ class Skladiste(Base):
     kontakt_email = Column(String(100), nullable=True)
     max_vozila = Column(Integer, nullable=True)
     aktivan = Column(Boolean, nullable=False, server_default="1")
+    sync_naloga = Column(Boolean, nullable=False, server_default="0")
     created_at = Column(DateTime, server_default=func.getutcdate())
     updated_at = Column(DateTime, server_default=func.getutcdate(), onupdate=func.getutcdate())
 

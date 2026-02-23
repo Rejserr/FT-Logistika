@@ -13,6 +13,10 @@ class RefreshOrdersRequest(BaseModel):
     datum_od: date | None = None
 
 
+class SyncByRasporedRequest(BaseModel):
+    raspored_datum: date
+
+
 class SyncResponse(BaseModel):
     sync_id: int
     status: str

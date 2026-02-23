@@ -38,6 +38,7 @@ class WarehouseOut(BaseModel):
     kontakt_email: str | None = None
     max_vozila: int | None = None
     aktivan: bool = True
+    sync_naloga: bool = False
 
     class Config:
         from_attributes = True
@@ -59,6 +60,7 @@ class WarehouseCreate(BaseModel):
     kontakt_telefon: str | None = None
     kontakt_email: str | None = None
     max_vozila: int | None = None
+    sync_naloga: bool = False
 
 
 class WarehouseUpdate(BaseModel):
@@ -78,6 +80,7 @@ class WarehouseUpdate(BaseModel):
     kontakt_email: str | None = None
     max_vozila: int | None = None
     aktivan: bool | None = None
+    sync_naloga: bool | None = None
 
 
 # ---------------------------------------------------------------------------

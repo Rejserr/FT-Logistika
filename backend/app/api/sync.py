@@ -15,11 +15,12 @@ from sqlalchemy import select
 from app.db.session import get_db
 from app.models.config_models import Setting, SyncStatus
 from app.models.sync_models import SyncLog
-from app.schemas.sync import RefreshOrdersRequest, SyncOrdersRequest, SyncResponse
+from app.schemas.sync import RefreshOrdersRequest, SyncByRasporedRequest, SyncOrdersRequest, SyncResponse
 from app.services.sync_service import (
     refresh_orders as do_refresh_orders,
     sync_artikli as do_sync_artikli,
     sync_orders as do_sync_orders,
+    sync_orders_by_raspored as do_sync_by_raspored,
     sync_partners as do_sync_partners,
 )
 
@@ -187,6 +188,49 @@ def sync_artikli_endpoint(
             bg_log = bg_db.get(SyncLog, log.id)
             if bg_log:
                 _run_async(do_sync_artikli(bg_db, bg_log))
+
+    background_tasks.add_task(run_sync)
+
+    return SyncResponse(sync_id=log.id, status=log.status, message=log.message)
+
+
+@router.post("/sync/orders-by-raspored", response_model=SyncResponse, status_code=status.HTTP_202_ACCEPTED)
+def sync_orders_by_raspored_endpoint(
+    payload: SyncByRasporedRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+) -> SyncResponse:
+    """
+    Sinkronizira naloge po datumu rasporeda (isporuke).
+
+    Gleda ERP naloge unazad 7 dana od zadanog datuma, filtrira samo one
+    čiji raspored odgovara tom datumu, te importira one koji još ne postoje
+    u našim tablicama.
+    """
+    log = SyncLog(
+        entity="orders_by_raspored",
+        status="QUEUED",
+        message=f"Sync po rasporedu {payload.raspored_datum.strftime('%d.%m.%Y')} pokrenut...",
+    )
+    db.add(log)
+    db.commit()
+    db.refresh(log)
+
+    raspored_datum = payload.raspored_datum
+
+    from app.db.session import SessionLocal
+
+    def run_sync():
+        print(f"[run_sync] START sync by raspored {raspored_datum}", flush=True)
+        try:
+            with SessionLocal() as bg_db:
+                bg_log = bg_db.get(SyncLog, log.id)
+                if bg_log:
+                    _run_async(do_sync_by_raspored(bg_db, bg_log, raspored_datum))
+        except Exception as exc:
+            print(f"[run_sync] GREŠKA: {exc}", flush=True)
+            logger.exception("run_sync (raspored) failed: %s", exc)
+        print("[run_sync] GOTOVO (raspored)", flush=True)
 
     background_tasks.add_task(run_sync)
 

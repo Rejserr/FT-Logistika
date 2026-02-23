@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
-from app.models.erp_models import Artikl, GrupaArtikla, NalogDetail, NalogHeader, Partner, VrstaIsporuke
+from app.models.erp_models import Artikl, GrupaArtikla, NalogDetail, NalogHeader, Partner, Skladiste, VrstaIsporuke
 from app.models.regional_models import PostanskiBroj
 from app.models.erp_models import NaloziBlacklist
 from app.models.routing_order_models import NalogHeaderRutiranje, NalogHeaderArhiva
@@ -32,6 +32,26 @@ def _log(msg: str) -> None:
     print(msg, flush=True)
     sys.stderr.write(msg + "\n")
     sys.stderr.flush()
+
+
+# ==============================================================================
+# Helper funkcije za skladište i filtriranje
+# ==============================================================================
+
+def _get_warehouse_code(header_data: dict[str, Any]) -> str | None:
+    """Vrati efektivni kod skladišta: sa__skladiste ako postoji, inače skladiste."""
+    code = _safe_str(header_data.get("sa__skladiste"))
+    if not code:
+        code = _safe_str(header_data.get("skladiste"))
+    return code
+
+
+def _get_sync_warehouse_codes(db: Session) -> set[str]:
+    """Vrati setove kodova skladišta koja imaju sync_naloga = True."""
+    rows = db.execute(
+        select(Skladiste.code).where(Skladiste.sync_naloga == True, Skladiste.code.isnot(None))
+    ).scalars().all()
+    return {c for c in rows if c}
 
 
 # ==============================================================================
@@ -452,8 +472,11 @@ async def sync_orders(
 
     try:
         allowed_vrste = _get_allowed_vrste_isporuke(db)
+        sync_warehouses = _get_sync_warehouse_codes(db)
         logger.info("Dozvoljene vrste isporuke: %s", allowed_vrste)
+        logger.info("Skladišta sa sync_naloga: %s", sync_warehouses)
         _log(f"[SYNC] Dozvoljene vrste isporuke: {allowed_vrste}")
+        _log(f"[SYNC] Skladišta sa sync: {sync_warehouses or '(sva — nijedna ne zahtijeva sync)'}")
         if require_raspored:
             logger.info("Filter rasporeda UKLJUČEN - preskaču se nalozi bez rasporeda")
             _log("[SYNC] Filter rasporeda UKLJUČEN")
@@ -467,6 +490,7 @@ async def sync_orders(
         skipped = 0
         skipped_no_raspored = 0
         skipped_vrsta = 0
+        skipped_warehouse = 0
         skipped_blacklist = 0
         skipped_rutiranje = 0
         skipped_arhiva = 0
@@ -479,6 +503,14 @@ async def sync_orders(
             if not nalog_prodaje_uid:
                 errors += 1
                 continue
+
+            # Filtriraj po skladištu (sa__skladiste || skladiste)
+            if sync_warehouses:
+                wh_code = _get_warehouse_code(header_data)
+                if not wh_code or wh_code not in sync_warehouses:
+                    skipped_warehouse += 1
+                    skipped += 1
+                    continue
 
             # Filtriraj po vrsti isporuke
             vrsta_isporuke = _safe_str(header_data.get("vrsta_isporuke"))
@@ -772,48 +804,24 @@ async def refresh_orders(db: Session, sync_log: SyncLog, datum_od: date) -> None
                     skipped += 1
                     continue
 
-                # 3. Ažuriraj header podatke i bilježi promjene
+                # 3. Upsert svih partnera PRIJE headera (FK constraint)
                 header_dict = map_nalog_header(erp_nalog)
-                changed_fields: list[str] = []
-                old_values: dict[str, str] = {}
-                new_values: dict[str, str] = {}
+                new_regija_id = None
 
-                for k, v in header_dict.items():
-                    if k == "nalog_prodaje_uid":
-                        continue
-                    if v is not None:
-                        old_val = getattr(existing, k, None)
-                        if old_val != v:
-                            changed_fields.append(k)
-                            old_values[k] = str(old_val) if old_val is not None else None
-                            new_values[k] = str(v)
-                            setattr(existing, k, v)
+                partner_uids_to_ensure: set[str] = set()
+                for pk in ("partner_uid", "korisnik__partner_uid"):
+                    val = _safe_str(erp_nalog.get(pk))
+                    if val:
+                        partner_uids_to_ensure.add(val)
 
-                if changed_fields:
-                    existing.synced_at = datetime.utcnow()
-                    updated_headers += 1
-                    # Zapiši u refresh_log
-                    db.add(RefreshLog(
-                        sync_log_id=sync_log.id,
-                        nalog_prodaje_uid=nalog_uid,
-                        tip="HEADER",
-                        polja_promijenjena=json.dumps(changed_fields, ensure_ascii=False),
-                        stare_vrijednosti=json.dumps(old_values, ensure_ascii=False),
-                        nove_vrijednosti=json.dumps(new_values, ensure_ascii=False),
-                    ))
-
-                # 4. Ažuriraj partnera ako postoji partner_uid
-                partner_uid = _safe_str(
-                    erp_nalog.get("korisnik__partner_uid") or erp_nalog.get("partner_uid")
-                )
-                if partner_uid:
+                for p_uid in partner_uids_to_ensure:
                     try:
-                        partner_erp = await erp_client.get_partner_by_uid(partner_uid)
-                        await asyncio.sleep(0.05)
-                        if partner_erp:
-                            partner_dict = map_partner(partner_erp)
-                            existing_partner = db.get(Partner, partner_uid)
-                            if existing_partner:
+                        existing_partner = db.get(Partner, p_uid)
+                        if existing_partner:
+                            partner_erp = await erp_client.get_partner_by_uid(p_uid)
+                            await asyncio.sleep(0.05)
+                            if partner_erp:
+                                partner_dict = map_partner(partner_erp)
                                 p_changed_fields: list[str] = []
                                 p_old_values: dict[str, str] = {}
                                 p_new_values: dict[str, str] = {}
@@ -830,21 +838,68 @@ async def refresh_orders(db: Session, sync_log: SyncLog, datum_od: date) -> None
                                     db.add(RefreshLog(
                                         sync_log_id=sync_log.id,
                                         nalog_prodaje_uid=nalog_uid,
-                                        partner_uid=partner_uid,
+                                        partner_uid=p_uid,
                                         tip="PARTNER",
                                         polja_promijenjena=json.dumps(p_changed_fields, ensure_ascii=False),
                                         stare_vrijednosti=json.dumps(p_old_values, ensure_ascii=False),
                                         nove_vrijednosti=json.dumps(p_new_values, ensure_ascii=False),
                                     ))
+                                postanski_broj = partner_dict.get("postanski_broj")
+                                if postanski_broj:
+                                    new_regija_id = _assign_regija(db, postanski_broj)
+                        else:
+                            partner_erp = await erp_client.get_partner_by_uid(p_uid)
+                            await asyncio.sleep(0.05)
+                            if partner_erp:
+                                partner_dict = map_partner(partner_erp)
+                                new_partner = Partner(**partner_dict)
+                                db.add(new_partner)
+                                updated_partners += 1
+                                logger.info("Kreiran novi partner %s za nalog %s", p_uid, nalog_uid)
+                                postanski_broj = partner_dict.get("postanski_broj")
+                                if postanski_broj:
+                                    new_regija_id = _assign_regija(db, postanski_broj)
+                            else:
+                                logger.warning("ERP ne vraća podatke za partner %s (nalog %s) — brišem partner_uid iz headera", p_uid, nalog_uid)
+                                if header_dict.get("partner_uid") == p_uid:
+                                    header_dict["partner_uid"] = None
 
-                            # Ažuriraj regiju na temelju novog poštanskog broja
-                            postanski_broj = partner_dict.get("postanski_broj")
-                            if postanski_broj:
-                                regija_id = _assign_regija(db, postanski_broj)
-                                if existing.regija_id != regija_id:
-                                    existing.regija_id = regija_id
+                        db.flush()
                     except Exception as e:
-                        logger.warning("Greška pri dohvatu partnera %s: %s", partner_uid, e)
+                        logger.warning("Greška pri dohvatu partnera %s: %s", p_uid, e)
+                        if header_dict.get("partner_uid") == p_uid:
+                            header_dict["partner_uid"] = None
+
+                # 4. Ažuriraj header podatke i bilježi promjene
+                changed_fields: list[str] = []
+                old_values: dict[str, str] = {}
+                new_values: dict[str, str] = {}
+
+                for k, v in header_dict.items():
+                    if k == "nalog_prodaje_uid":
+                        continue
+                    if v is not None:
+                        old_val = getattr(existing, k, None)
+                        if old_val != v:
+                            changed_fields.append(k)
+                            old_values[k] = str(old_val) if old_val is not None else None
+                            new_values[k] = str(v)
+                            setattr(existing, k, v)
+
+                if new_regija_id is not None and existing.regija_id != new_regija_id:
+                    existing.regija_id = new_regija_id
+
+                if changed_fields:
+                    existing.synced_at = datetime.utcnow()
+                    updated_headers += 1
+                    db.add(RefreshLog(
+                        sync_log_id=sync_log.id,
+                        nalog_prodaje_uid=nalog_uid,
+                        tip="HEADER",
+                        polja_promijenjena=json.dumps(changed_fields, ensure_ascii=False),
+                        stare_vrijednosti=json.dumps(old_values, ensure_ascii=False),
+                        nove_vrijednosti=json.dumps(new_values, ensure_ascii=False),
+                    ))
 
                 db.commit()
 
@@ -1009,6 +1064,230 @@ async def sync_artikli(db: Session, sync_log: SyncLog) -> None:
 
     except Exception as e:
         logger.exception("Sync artikli failed: %s", e)
+        db.rollback()
+        sync_log.status = "FAILED"
+        sync_log.message = str(e)[:500]
+        sync_log.finished_at = datetime.utcnow()
+        db.commit()
+
+
+# ==============================================================================
+# Sync po rasporedu (datum isporuke)
+# ==============================================================================
+
+async def sync_orders_by_raspored(
+    db: Session,
+    sync_log: SyncLog,
+    raspored_datum: date,
+) -> None:
+    """
+    Sinkronizira naloge iz ERP-a prema datumu rasporeda (isporuke).
+
+    Gleda unazad 7 dana od raspored_datum u ERP-u, filtrira samo one čiji
+    raspored odgovara zadanom datumu, a koji se još ne nalaze u našim
+    tablicama (nalozi_header, rutiranje, arhiva, blacklist).
+
+    Primjenjuje iste kriterije kao sync_orders:
+    - vrsta_isporuke filter
+    - sync_naloga filter po skladištu (sa__skladiste || skladiste)
+    """
+    from datetime import timedelta
+
+    sync_log.status = "RUNNING"
+    sync_log.message = f"Sync po rasporedu {raspored_datum.strftime('%d.%m.%Y')} — dohvaćam naloge..."
+    db.commit()
+
+    statusi = ["08"]
+    datum_od = raspored_datum - timedelta(days=7)
+    datum_do = raspored_datum
+    target_str = raspored_datum.strftime("%d.%m.%Y")
+
+    try:
+        allowed_vrste = _get_allowed_vrste_isporuke(db)
+        sync_warehouses = _get_sync_warehouse_codes(db)
+        _log(f"[SYNC-RASPORED] Tražim naloge s rasporedom={target_str}, ERP raspon: {datum_od} → {datum_do}")
+        _log(f"[SYNC-RASPORED] Dozvoljene vrste isporuke: {allowed_vrste}")
+        _log(f"[SYNC-RASPORED] Skladišta sa sync: {sync_warehouses or '(sva)'}")
+
+        headers = await erp_client.get_nalozi_headers(statusi, datum_od, datum_do)
+        _log(f"[SYNC-RASPORED] ERP vratio {len(headers)} headera")
+
+        created = 0
+        skipped = 0
+        skipped_raspored = 0
+        skipped_vrsta = 0
+        skipped_warehouse = 0
+        skipped_exists = 0
+        errors = 0
+        total_headers = len(headers)
+
+        for idx, header_data in enumerate(headers, 1):
+            nalog_prodaje_uid = _safe_str(header_data.get("nalog_prodaje_uid"))
+            if not nalog_prodaje_uid:
+                errors += 1
+                continue
+
+            # Filter: raspored mora odgovarati traženom datumu
+            raspored_raw = header_data.get("raspored")
+            if not raspored_raw:
+                skipped_raspored += 1
+                skipped += 1
+                continue
+            try:
+                if isinstance(raspored_raw, str):
+                    rasp_dt = datetime.strptime(raspored_raw[:10], "%Y-%m-%d").date()
+                elif isinstance(raspored_raw, datetime):
+                    rasp_dt = raspored_raw.date()
+                elif isinstance(raspored_raw, date):
+                    rasp_dt = raspored_raw
+                else:
+                    rasp_dt = None
+            except Exception:
+                rasp_dt = None
+
+            if rasp_dt != raspored_datum:
+                skipped_raspored += 1
+                skipped += 1
+                continue
+
+            # Filter: skladište
+            if sync_warehouses:
+                wh_code = _get_warehouse_code(header_data)
+                if not wh_code or wh_code not in sync_warehouses:
+                    skipped_warehouse += 1
+                    skipped += 1
+                    continue
+
+            # Filter: vrsta isporuke
+            vrsta_isporuke = _safe_str(header_data.get("vrsta_isporuke"))
+            if not vrsta_isporuke or vrsta_isporuke not in allowed_vrste:
+                skipped_vrsta += 1
+                skipped += 1
+                continue
+
+            # Provjeri da nalog ne postoji već u bazi
+            if db.get(NalogHeader, nalog_prodaje_uid):
+                skipped_exists += 1
+                skipped += 1
+                continue
+            if db.get(NalogHeaderRutiranje, nalog_prodaje_uid):
+                skipped_exists += 1
+                skipped += 1
+                continue
+            if db.execute(
+                select(NalogHeaderArhiva.nalog_prodaje_uid).where(
+                    NalogHeaderArhiva.nalog_prodaje_uid == nalog_prodaje_uid
+                )
+            ).first():
+                skipped_exists += 1
+                skipped += 1
+                continue
+            if db.get(NaloziBlacklist, nalog_prodaje_uid):
+                skipped_exists += 1
+                skipped += 1
+                continue
+
+            try:
+                # Dohvati detalje
+                detail_resp = await erp_client.get_nalog_details(nalog_prodaje_uid)
+                await asyncio.sleep(0.05)
+
+                # Upsert partner
+                partner_sifra = _safe_str(
+                    header_data.get("korisnik__partner") or header_data.get("partner")
+                )
+                partner_uid = _safe_str(
+                    header_data.get("korisnik__partner_uid") or header_data.get("partner_uid")
+                )
+                partner_postanski_broj = None
+
+                if partner_sifra:
+                    try:
+                        partner_erp = await erp_client.get_partner(partner_sifra)
+                        await asyncio.sleep(0.05)
+                    except Exception:
+                        partner_erp = None
+
+                    if partner_erp:
+                        partner_dict = map_partner(partner_erp)
+                        if partner_dict.get("partner_uid"):
+                            partner_uid = partner_dict["partner_uid"]
+                        partner_postanski_broj = partner_dict.get("postanski_broj")
+                        if partner_uid:
+                            existing_partner = db.get(Partner, partner_uid)
+                            if existing_partner:
+                                for k, v in partner_dict.items():
+                                    if v is not None:
+                                        setattr(existing_partner, k, v)
+                            else:
+                                db.add(Partner(**partner_dict))
+
+                if partner_uid and not db.get(Partner, partner_uid):
+                    db.add(Partner(partner_uid=partner_uid, partner=partner_sifra))
+
+                db.commit()
+
+                # Map header
+                header_dict = map_nalog_header(header_data)
+                header_dict["nalog_prodaje_uid"] = nalog_prodaje_uid
+
+                if detail_resp:
+                    detail_header = map_nalog_header(detail_resp)
+                    for k, v in detail_header.items():
+                        if k == "nalog_prodaje_uid":
+                            continue
+                        if v is not None:
+                            header_dict[k] = v
+
+                if partner_uid:
+                    header_dict["partner_uid"] = partner_uid
+                if partner_postanski_broj:
+                    header_dict["regija_id"] = _assign_regija(db, partner_postanski_broj)
+
+                db.add(NalogHeader(**header_dict))
+                db.commit()
+
+                # Upsert stavke
+                if detail_resp:
+                    stavke = detail_resp.get("stavke", [])
+                    if not isinstance(stavke, list):
+                        stavke = []
+                    for stavka_erp in stavke:
+                        detail_dict = map_nalog_detail(stavka_erp, nalog_prodaje_uid)
+                        stavka_uid = detail_dict.get("stavka_uid")
+                        if not stavka_uid:
+                            continue
+                        artikl_uid = detail_dict.get("artikl_uid")
+                        if artikl_uid and not db.get(Artikl, artikl_uid):
+                            detail_dict["artikl_uid"] = None
+                        existing_det = db.get(NalogDetail, stavka_uid)
+                        if not existing_det:
+                            db.add(NalogDetail(**detail_dict))
+                    db.commit()
+
+                created += 1
+                _log(f"[SYNC-RASPORED] CREATE {nalog_prodaje_uid} (raspored: {target_str})")
+
+                if idx % 10 == 0:
+                    _log(f"[SYNC-RASPORED] Napredak: {idx}/{total_headers}")
+
+            except Exception as e:
+                logger.exception("Greška sync-raspored %s: %s", nalog_prodaje_uid, e)
+                errors += 1
+                db.rollback()
+
+        sync_log.status = "COMPLETED"
+        sync_log.message = (
+            f"Raspored {target_str}: Kreirano {created}, "
+            f"Preskočeno {skipped} (raspored: {skipped_raspored}, vrsta: {skipped_vrsta}, "
+            f"skladište: {skipped_warehouse}, postoji: {skipped_exists}), Greške: {errors}"
+        )
+        sync_log.finished_at = datetime.utcnow()
+        db.commit()
+        _log(f"[SYNC-RASPORED] {sync_log.message}")
+
+    except Exception as e:
+        logger.exception("Sync by raspored failed: %s", e)
         db.rollback()
         sync_log.status = "FAILED"
         sync_log.message = str(e)[:500]
