@@ -344,7 +344,7 @@ export function DataTable<T>({
             placeholder={searchPlaceholder}
             value={globalFilter}
             onChange={(e) => { setGlobalFilter(e.target.value); setPage(0) }}
-            className="pl-9 bg-white border-slate-100 shadow-[0_1px_3px_rgba(15,23,42,0.03)] focus-visible:border-primary/30 dark:bg-card dark:border-border"
+            className="pl-9 bg-white/50 backdrop-blur-lg border-white/60 shadow-[0_1px_3px_rgba(15,23,42,0.03)] focus-visible:border-primary/30 dark:bg-card dark:border-border"
           />
         </div>
 
@@ -579,7 +579,7 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-slate-400 shrink-0 bg-white border-none rounded-2xl px-5 py-3 mt-0 shadow-[0_1px_2px_rgba(15,23,42,0.02),0_4px_12px_rgba(15,23,42,0.03),0_10px_40px_-10px_rgba(15,23,42,0.06)] dark:bg-card/60 dark:border dark:border-border/60">
+      <div className="flex items-center justify-between text-sm text-slate-400 shrink-0 bg-white/50 backdrop-blur-lg border border-white/60 rounded-2xl px-5 py-3 mt-0 shadow-[0_1px_2px_rgba(15,23,42,0.02),0_4px_12px_rgba(15,23,42,0.03)] dark:bg-card/60 dark:border-border/60">
         <div className="flex items-center gap-4">
           <span>
             {sorted.length > 0

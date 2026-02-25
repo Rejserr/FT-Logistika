@@ -395,7 +395,7 @@ export default function RoutingPage() {
     <PermissionGuard permission="routes.create">
       <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-border/50 bg-white/60 dark:bg-card/50 px-4 py-3 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/40 dark:border-border/50 bg-white/30 backdrop-blur-lg dark:bg-card/50 px-4 py-3 shrink-0">
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-1 text-slate-300 hover:text-slate-500 dark:text-muted-foreground dark:hover:text-foreground" />
           <Separator orientation="vertical" className="h-6 bg-slate-200 dark:bg-border" />

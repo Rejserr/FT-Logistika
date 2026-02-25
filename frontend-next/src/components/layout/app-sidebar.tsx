@@ -166,8 +166,8 @@ export function AppSidebar() {
                           tooltip={item.label}
                           className={
                             isActive
-                              ? "rounded-xl bg-white text-primary font-semibold shadow-[0_2px_10px_rgba(15,23,42,0.06)] hover:bg-white data-[active=true]:bg-white data-[active=true]:text-primary dark:bg-primary/10 dark:text-primary dark:shadow-none dark:hover:bg-primary/15 dark:data-[active=true]:bg-primary/10 dark:data-[active=true]:text-primary"
-                              : "rounded-xl text-slate-400 hover:bg-white/70 hover:text-slate-700 hover:shadow-[0_1px_4px_rgba(15,23,42,0.04)] dark:text-sidebar-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
+                              ? "rounded-xl bg-white/70 backdrop-blur-lg text-primary font-semibold shadow-[0_2px_12px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.6)] hover:bg-white/80 data-[active=true]:bg-white/70 data-[active=true]:text-primary dark:bg-primary/10 dark:text-primary dark:shadow-none dark:backdrop-blur-none dark:hover:bg-primary/15 dark:data-[active=true]:bg-primary/10 dark:data-[active=true]:text-primary"
+                              : "rounded-xl text-slate-500 hover:bg-white/40 hover:backdrop-blur-sm hover:text-slate-700 dark:text-sidebar-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
                           }
                         >
                           <a
@@ -197,7 +197,7 @@ export function AppSidebar() {
             variant="ghost"
             size={collapsed ? "icon" : "default"}
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className={`w-full justify-start gap-3 rounded-xl text-slate-400 hover:bg-white/70 hover:text-slate-600 dark:text-sidebar-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground ${collapsed ? "justify-center px-0" : ""}`}
+            className={`w-full justify-start gap-3 rounded-xl text-slate-500 hover:bg-white/40 hover:text-slate-700 dark:text-sidebar-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground ${collapsed ? "justify-center px-0" : ""}`}
           >
             {theme === "dark" ? (
               <Sun className="h-4 w-4 shrink-0 text-amber-400" />
@@ -213,7 +213,7 @@ export function AppSidebar() {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all hover:bg-white/70 hover:shadow-[0_1px_4px_rgba(15,23,42,0.04)] dark:hover:bg-sidebar-accent">
+            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all hover:bg-white/40 dark:hover:bg-sidebar-accent">
               <Avatar className="h-8 w-8 shrink-0 border-0 shadow-[0_1px_4px_rgba(15,23,42,0.08)]">
                 <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/5 text-xs text-primary font-semibold">
                   {initials}

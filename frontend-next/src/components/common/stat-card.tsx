@@ -13,23 +13,23 @@ interface StatCardProps {
 
 const accentMap = {
   blue: {
-    iconBg: "bg-gradient-to-br from-blue-50 to-blue-100/80 dark:from-blue-500/10 dark:to-blue-500/5",
+    iconBg: "bg-gradient-to-br from-blue-100/60 to-indigo-100/40 backdrop-blur-sm dark:from-blue-500/10 dark:to-blue-500/5",
     iconText: "text-blue-500 dark:text-blue-400",
   },
   green: {
-    iconBg: "bg-gradient-to-br from-emerald-50 to-emerald-100/80 dark:from-emerald-500/10 dark:to-emerald-500/5",
+    iconBg: "bg-gradient-to-br from-emerald-100/60 to-teal-100/40 backdrop-blur-sm dark:from-emerald-500/10 dark:to-emerald-500/5",
     iconText: "text-emerald-500 dark:text-emerald-400",
   },
   amber: {
-    iconBg: "bg-gradient-to-br from-amber-50 to-amber-100/80 dark:from-amber-500/10 dark:to-amber-500/5",
+    iconBg: "bg-gradient-to-br from-amber-100/60 to-orange-100/40 backdrop-blur-sm dark:from-amber-500/10 dark:to-amber-500/5",
     iconText: "text-amber-500 dark:text-amber-400",
   },
   purple: {
-    iconBg: "bg-gradient-to-br from-purple-50 to-purple-100/80 dark:from-purple-500/10 dark:to-purple-500/5",
+    iconBg: "bg-gradient-to-br from-purple-100/60 to-violet-100/40 backdrop-blur-sm dark:from-purple-500/10 dark:to-purple-500/5",
     iconText: "text-purple-500 dark:text-purple-400",
   },
   red: {
-    iconBg: "bg-gradient-to-br from-red-50 to-red-100/80 dark:from-red-500/10 dark:to-red-500/5",
+    iconBg: "bg-gradient-to-br from-red-100/60 to-rose-100/40 backdrop-blur-sm dark:from-red-500/10 dark:to-red-500/5",
     iconText: "text-red-500 dark:text-red-400",
   },
 }
