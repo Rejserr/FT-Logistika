@@ -12,18 +12,18 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <div className="flex items-center justify-between pb-6">
-      <div className="flex items-center gap-3">
-        <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-        <Separator orientation="vertical" className="h-6" />
+    <div className="flex items-center justify-between pb-8">
+      <div className="flex items-center gap-4">
+        <SidebarTrigger className="-ml-1 text-slate-300 hover:text-slate-500 dark:text-muted-foreground dark:hover:text-foreground" />
+        <Separator orientation="vertical" className="h-6 bg-slate-200 dark:bg-border" />
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-800 dark:text-foreground">{title}</h1>
           {subtitle && (
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
+            <p className="text-sm text-slate-400 dark:text-muted-foreground">{subtitle}</p>
           )}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-3">{actions}</div>}
     </div>
   )
 }

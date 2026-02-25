@@ -39,37 +39,36 @@
 }
 
 :root {
-  --radius: 1.25rem;
-  --background: transparent;
-  --foreground: #1E293B;
-  --card: rgba(255, 255, 255, 0.4);
-  --card-foreground: #1E293B;
-  --popover: rgba(255, 255, 255, 0.8);
-  --popover-foreground: #1E293B;
-  --primary: #FF7E67; /* Topla boja s reference umjesto plave */
+  --radius: 1rem;
+  --background: #F1F5F9;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #FF7E67;
   --primary-foreground: #FFFFFF;
-  --secondary: #FFF3ED;
+  --secondary: #FFF1EC;
   --secondary-foreground: #FF7E67;
-  --muted: rgba(248, 250, 252, 0.5);
+  --muted: #F1F5F9;
   --muted-foreground: #64748B;
-  --accent: rgba(255, 255, 255, 0.6);
+  --accent: #F8FAFC;
   --accent-foreground: #0F172A;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(226, 232, 240, 0.4);
-  --input: rgba(226, 232, 240, 0.6);
-  --ring: rgba(255, 126, 103, 0.5);
-  --sidebar: rgba(255, 255, 255, 0.6);
-  --sidebar-foreground: #475569;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: rgba(255, 126, 103, 0.4);
+  --sidebar: #F8FAFC;
+  --sidebar-foreground: #64748B;
   --sidebar-primary: #FF7E67;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(255, 255, 255, 0.8);
+  --sidebar-accent: #F1F5F9;
   --sidebar-accent-foreground: #FF7E67;
   --sidebar-border: transparent;
-  --sidebar-ring: rgba(255, 126, 103, 0.5);
+  --sidebar-ring: rgba(255, 126, 103, 0.4);
 }
 
-/* VRAĆAMO DARK TEMU */
 .dark {
   --background: transparent;
   --foreground: #F8FAFC;
@@ -104,59 +103,112 @@
   * {
     @apply border-border outline-ring/50;
   }
-  
+
   body {
-    /* TOČAN MESH GRADIENT S TVOJE REFERENCE ZA LIGHT TEMU */
-    background: radial-gradient(circle at top left, #FDF7E7 0%, #FDF7F3 30%, #FCF5F0 60%, #FAF1EB 100%) !important;
-    background-attachment: fixed !important;
+    background: linear-gradient(135deg, #EEF2F7 0%, #E8EDF5 25%, #F0F4FA 50%, #EBF0F7 75%, #F1F5F9 100%);
+    background-attachment: fixed;
     color: var(--foreground);
     min-height: 100vh;
   }
 
   .dark body {
-    /* DARK MESH GRADIENT */
     background: radial-gradient(circle at top left, #0F172A 0%, #1E1B4B 50%, #020617 100%) !important;
     background-attachment: fixed !important;
   }
 }
 
 @layer components {
-  /* GLASSMORPHISM ZA KARTICE I REDOVE (Točno s reference) */
-  [data-slot="card"], .rounded-xl.border, [data-slot="table-row"], tbody tr {
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    background-color: var(--card) !important;
-    backdrop-filter: blur(16px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-    box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.03) !important;
-    border-radius: var(--radius) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  /* ─── Premium shadow utility ─── */
+  .shadow-premium {
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.02),
+      0 4px 12px rgba(15, 23, 42, 0.03),
+      0 10px 40px -10px rgba(15, 23, 42, 0.06);
+  }
+  .shadow-premium-hover {
+    box-shadow:
+      0 2px 4px rgba(15, 23, 42, 0.03),
+      0 8px 20px rgba(15, 23, 42, 0.05),
+      0 16px 48px -12px rgba(15, 23, 42, 0.08);
   }
 
-  .dark [data-slot="card"], .dark .rounded-xl.border, .dark [data-slot="table-row"], .dark tbody tr {
+  .dark .shadow-premium {
+    box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.2);
+  }
+  .dark .shadow-premium-hover {
+    box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  /* ─── Card glassmorphism for LIGHT theme ─── */
+  [data-slot="card"] {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    border-radius: 1.25rem !important;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.02),
+      0 4px 12px rgba(15, 23, 42, 0.03),
+      0 10px 40px -10px rgba(15, 23, 42, 0.06) !important;
+    transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+  }
+  [data-slot="card"]:hover {
+    box-shadow:
+      0 2px 4px rgba(15, 23, 42, 0.03),
+      0 8px 20px rgba(15, 23, 42, 0.05),
+      0 16px 48px -12px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .dark [data-slot="card"] {
+    background: var(--card) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
     box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.2) !important;
   }
 
-  /* HOVER EFEKT */
-  [data-slot="table-row"]:hover, tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.6) !important;
-    transform: translateY(-2px) scale(1.002);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06) !important;
+  /* ─── Table rows - clean flat style in LIGHT, glass in DARK ─── */
+  tbody tr,
+  [data-slot="table-row"] {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: background-color 0.15s ease !important;
+  }
+  tbody tr:hover,
+  [data-slot="table-row"]:hover {
+    background-color: #F8FAFC !important;
+    transform: none !important;
+    box-shadow: none !important;
   }
 
-  .dark [data-slot="table-row"]:hover, .dark tbody tr:hover {
+  .dark tbody tr,
+  .dark [data-slot="table-row"] {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--card) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.2) !important;
+    border-radius: var(--radius) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .dark tbody tr:hover,
+  .dark [data-slot="table-row"]:hover {
     background-color: rgba(30, 41, 59, 0.6) !important;
+    transform: translateY(-2px) scale(1.002);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25) !important;
   }
 
-  /* POPRAVLJENI NASLOVI TABLICA */
+  /* ─── Table headers ─── */
   [data-slot="table-head"], th {
     text-transform: uppercase !important;
-    font-size: 0.7rem !important;
-    font-weight: 700 !important;
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
     letter-spacing: 0.08em !important;
-    color: var(--muted-foreground) !important;
-    padding: 0 20px 16px 20px !important;
-    border-bottom: 1px solid var(--border) !important;
+    color: #94A3B8 !important;
+    padding: 0 16px 14px 16px !important;
+    border-bottom: 1px solid #F1F5F9 !important;
     background: transparent !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
@@ -165,31 +217,61 @@
     border-top: none !important;
   }
 
-  /* Sticky header — neprozirna pozadina */
+  .dark [data-slot="table-head"],
+  .dark th {
+    color: var(--muted-foreground) !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
   th.sticky {
-    background: #F4F8FB !important;
+    background: #F1F5F9 !important;
   }
   .dark th.sticky {
     background: #0F172A !important;
   }
 
+  /* ─── Table cells ─── */
   [data-slot="table-cell"], td {
-    padding: 16px 20px !important;
+    padding: 14px 16px !important;
     border: none !important;
     color: var(--foreground) !important;
     font-size: 13px !important;
     background: transparent !important;
+    border-bottom: 1px solid #F1F5F9 !important;
   }
 
-  /* FIX: Razmaknuti redovi */
+  .dark [data-slot="table-cell"],
+  .dark td {
+    border-bottom: none !important;
+  }
+
+  /* ─── Table structure ─── */
   table {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+  }
+
+  .dark table {
     border-collapse: separate !important;
     border-spacing: 0 10px !important;
   }
 
-  /* PILULE BADGE — samo oblik, boje dolaze iz komponente */
+  /* ─── Badge pill shape ─── */
   [data-slot="badge"] {
     border-radius: 9999px !important;
-    padding: 4px 12px !important;
+    padding: 3px 10px !important;
+    font-weight: 500 !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.01em !important;
+  }
+
+  /* ─── .rounded-xl.border generic panels - only glass in dark ─── */
+  .dark .rounded-xl.border {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--card) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.2) !important;
+    border-radius: var(--radius) !important;
   }
 }

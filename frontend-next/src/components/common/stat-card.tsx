@@ -13,24 +13,24 @@ interface StatCardProps {
 
 const accentMap = {
   blue: {
-    bg: "bg-blue-50 dark:bg-blue-500/10",
-    text: "text-blue-600 dark:text-blue-400",
+    iconBg: "bg-gradient-to-br from-blue-50 to-blue-100/80 dark:from-blue-500/10 dark:to-blue-500/5",
+    iconText: "text-blue-500 dark:text-blue-400",
   },
   green: {
-    bg: "bg-emerald-50 dark:bg-emerald-500/10",
-    text: "text-emerald-600 dark:text-emerald-400",
+    iconBg: "bg-gradient-to-br from-emerald-50 to-emerald-100/80 dark:from-emerald-500/10 dark:to-emerald-500/5",
+    iconText: "text-emerald-500 dark:text-emerald-400",
   },
   amber: {
-    bg: "bg-amber-50 dark:bg-amber-500/10",
-    text: "text-amber-600 dark:text-amber-400",
+    iconBg: "bg-gradient-to-br from-amber-50 to-amber-100/80 dark:from-amber-500/10 dark:to-amber-500/5",
+    iconText: "text-amber-500 dark:text-amber-400",
   },
   purple: {
-    bg: "bg-purple-50 dark:bg-purple-500/10",
-    text: "text-purple-600 dark:text-purple-400",
+    iconBg: "bg-gradient-to-br from-purple-50 to-purple-100/80 dark:from-purple-500/10 dark:to-purple-500/5",
+    iconText: "text-purple-500 dark:text-purple-400",
   },
   red: {
-    bg: "bg-red-50 dark:bg-red-500/10",
-    text: "text-red-600 dark:text-red-400",
+    iconBg: "bg-gradient-to-br from-red-50 to-red-100/80 dark:from-red-500/10 dark:to-red-500/5",
+    iconText: "text-red-500 dark:text-red-400",
   },
 }
 
@@ -44,24 +44,24 @@ export function StatCard({
   const colors = accentMap[accent]
 
   return (
-    <Card className="glass glass-hover cursor-default">
-      <CardContent className="flex items-center gap-4 p-6">
+    <Card>
+      <CardContent className="flex items-center gap-5 p-6">
         <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${colors.bg}`}
+          className={`flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl ${colors.iconBg}`}
         >
-          <Icon className={`h-5 w-5 ${colors.text}`} />
+          <Icon className={`h-6 w-6 ${colors.iconText}`} />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-0.5">
           <span className="text-3xl font-bold tabular-nums tracking-tight text-slate-800 dark:text-foreground">
             {value}
           </span>
-          <span className="text-xs text-slate-500 dark:text-muted-foreground">{title}</span>
+          <span className="text-xs font-medium text-slate-400 dark:text-muted-foreground">{title}</span>
         </div>
         {trend && (
           <div className="ml-auto text-right">
             <span
-              className={`text-xs font-medium ${
-                trend.value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+              className={`text-xs font-semibold ${
+                trend.value >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
               }`}
             >
               {trend.value >= 0 ? "+" : ""}
