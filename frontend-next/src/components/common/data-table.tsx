@@ -539,7 +539,11 @@ export function DataTable<T>({
                     `}
                   >
                     {selectedRows && onSelectRows && getRowId && (
-                      <TableCell className="w-10" style={{ width: 40 }}>
+                      <TableCell
+                        className="w-10"
+                        style={{ width: 40 }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <input
                           type="checkbox"
                           checked={isSelected || false}

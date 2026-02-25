@@ -535,122 +535,119 @@ function OrderDetailPanel({ nalogUid, onClose, criteriaArtiklSet }: { nalogUid: 
   return (
     <div className="flex h-full flex-col">
       {/* Fixed header */}
-      <div className="flex items-center justify-between border-b border-blue-100/50 dark:border-border px-4 py-3 shrink-0 bg-white dark:bg-card">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-foreground">Detalji naloga</h3>
-        <Button variant="ghost" size="sm" onClick={onClose} className="text-xs">Zatvori</Button>
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-border px-4 py-2.5 shrink-0 bg-gradient-to-r from-slate-50 to-white dark:from-card dark:to-card">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-foreground">Nalog #{order.broj ?? "—"}</h3>
+          <StatusBadge status={order.status} />
+        </div>
+        <Button variant="ghost" size="icon-xs" onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Scrollable body */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="space-y-4 p-4">
+        <div className="space-y-3 p-4">
 
-          {/* Kupac (full-width) */}
-          <div>
-            <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Kupac</span>
-            <p className="text-sm font-medium text-slate-800 dark:text-foreground">{kupac || "—"}</p>
+          {/* Kupac + Adresa card */}
+          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-secondary/20 dark:to-secondary/10 p-3 space-y-2">
+            <div>
+              <span className="text-[9px] text-slate-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Kupac</span>
+              <p className="text-[13px] font-semibold text-slate-800 dark:text-foreground leading-tight">{kupac || "—"}</p>
+            </div>
+            <div className="grid grid-cols-1 gap-1.5">
+              <EditableField
+                label="Adresa"
+                field="adresa"
+                value={order.partner_adresa}
+                editingField={editingField}
+                editValue={editValue}
+                isPending={updatePartnerMutation.isPending}
+                onStartEdit={startEdit}
+                onSaveEdit={saveEdit}
+                onCancelEdit={cancelEdit}
+                onEditValueChange={setEditValue}
+              />
+              <div className="grid grid-cols-2 gap-x-3">
+                <EditableField
+                  label="PB"
+                  field="postanski_broj"
+                  value={order.partner_postanski_broj}
+                  editingField={editingField}
+                  editValue={editValue}
+                  isPending={updatePartnerMutation.isPending}
+                  onStartEdit={startEdit}
+                  onSaveEdit={saveEdit}
+                  onCancelEdit={cancelEdit}
+                  onEditValueChange={setEditValue}
+                />
+                <EditableField
+                  label="Mjesto"
+                  field="naziv_mjesta"
+                  value={order.partner_naziv_mjesta}
+                  editingField={editingField}
+                  editValue={editValue}
+                  isPending={updatePartnerMutation.isPending}
+                  onStartEdit={startEdit}
+                  onSaveEdit={saveEdit}
+                  onCancelEdit={cancelEdit}
+                  onEditValueChange={setEditValue}
+                />
+              </div>
+            </div>
+            {/* Kontakt - inline */}
+            {(order.partner_mobitel || order.partner_telefon || order.partner_e_mail) && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 border-t border-slate-200/60 dark:border-border">
+                {(order.partner_mobitel || order.partner_telefon) && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-muted-foreground">
+                    <Phone className="h-3 w-3 shrink-0" />
+                    <span>{[order.partner_mobitel, order.partner_telefon].filter(Boolean).join(" / ")}</span>
+                  </div>
+                )}
+                {order.partner_e_mail && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-muted-foreground">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    <span>{order.partner_e_mail}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Adresa (editable) */}
-          <EditableField
-            label="Adresa"
-            field="adresa"
-            value={order.partner_adresa}
-            editingField={editingField}
-            editValue={editValue}
-            isPending={updatePartnerMutation.isPending}
-            onStartEdit={startEdit}
-            onSaveEdit={saveEdit}
-            onCancelEdit={cancelEdit}
-            onEditValueChange={setEditValue}
-          />
-
-          {/* Poštanski broj + Mjesto (2 columns, editable) */}
-          <div className="grid grid-cols-2 gap-x-4">
-            <EditableField
-              label="Poštanski broj"
-              field="postanski_broj"
-              value={order.partner_postanski_broj}
-              editingField={editingField}
-              editValue={editValue}
-              isPending={updatePartnerMutation.isPending}
-              onStartEdit={startEdit}
-              onSaveEdit={saveEdit}
-              onCancelEdit={cancelEdit}
-              onEditValueChange={setEditValue}
-            />
-            <EditableField
-              label="Mjesto"
-              field="naziv_mjesta"
-              value={order.partner_naziv_mjesta}
-              editingField={editingField}
-              editValue={editValue}
-              isPending={updatePartnerMutation.isPending}
-              onStartEdit={startEdit}
-              onSaveEdit={saveEdit}
-              onCancelEdit={cancelEdit}
-              onEditValueChange={setEditValue}
-            />
-          </div>
-
-          {/* Broj, Datum, Raspored, Skladište, Status, Kreirao */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          {/* Meta grid - compact 3 columns */}
+          <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-[12px]">
             <div>
-              <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Broj</span>
-              <p className="font-medium">{order.broj ?? "—"}</p>
+              <span className="text-[9px] text-slate-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Datum</span>
+              <p className="font-semibold text-slate-700 dark:text-foreground">{order.datum ?? "—"}</p>
             </div>
             <div>
-              <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Datum</span>
-              <p className="font-medium">{order.datum ?? "—"}</p>
+              <span className="text-[9px] text-slate-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Raspored</span>
+              <p className="font-semibold text-slate-700 dark:text-foreground">{order.raspored ?? "—"}</p>
             </div>
             <div>
-              <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Raspored (isporuka)</span>
-              <p className="font-medium">{order.raspored ?? "—"}</p>
+              <span className="text-[9px] text-slate-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Skladište</span>
+              <p className="font-semibold text-slate-700 dark:text-foreground">{order.skladiste ?? "—"}</p>
             </div>
             <div>
-              <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Skladište</span>
-              <p className="font-medium">{order.skladiste ?? "—"}</p>
-            </div>
-            <div>
-              <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Status</span>
-              <div className="mt-0.5"><StatusBadge status={order.status} /></div>
-            </div>
-            <div>
-              <span className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Kreirao</span>
-              <p className="font-medium">{order.kreirao__radnik_ime ?? "—"}</p>
+              <span className="text-[9px] text-slate-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Kreirao</span>
+              <p className="font-semibold text-slate-700 dark:text-foreground">{order.kreirao__radnik_ime ?? "—"}</p>
             </div>
           </div>
 
-          {/* Kontakt info */}
-          {(order.partner_mobitel || order.partner_telefon || order.partner_e_mail) && (
-            <div className="rounded-lg border border-border bg-secondary/20 p-3 space-y-1.5">
-              {(order.partner_mobitel || order.partner_telefon) && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Phone className="h-3.5 w-3.5 shrink-0" />
-                  <span>{[order.partner_mobitel, order.partner_telefon].filter(Boolean).join(" / ")}</span>
-                </div>
-              )}
-              {order.partner_e_mail && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Mail className="h-3.5 w-3.5 shrink-0" />
-                  <span>{order.partner_e_mail}</span>
-                </div>
-              )}
+          {/* Weight / Volume / Za naplatu - compact */}
+          <div className="grid grid-cols-3 gap-1.5">
+            <div className="rounded-lg bg-blue-50/50 dark:bg-secondary/20 px-2 py-1.5 text-center">
+              <div className="text-[9px] text-blue-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Težina</div>
+              <div className="text-[13px] font-bold text-slate-800 dark:text-foreground">{formatWeight(order.total_weight)}</div>
             </div>
-          )}
-
-          {/* Weight / Volume / Za naplatu */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-xl bg-blue-50/60 dark:bg-secondary/20 p-2.5 text-center border border-blue-100/40 dark:border-border">
-              <div className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Težina</div>
-              <div className="text-sm font-bold text-slate-800 dark:text-foreground">{formatWeight(order.total_weight)}</div>
+            <div className="rounded-lg bg-blue-50/50 dark:bg-secondary/20 px-2 py-1.5 text-center">
+              <div className="text-[9px] text-blue-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Volumen</div>
+              <div className="text-[13px] font-bold text-slate-800 dark:text-foreground">{formatVolume(order.total_volume)}</div>
             </div>
-            <div className="rounded-xl bg-blue-50/60 dark:bg-secondary/20 p-2.5 text-center border border-blue-100/40 dark:border-border">
-              <div className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Volumen</div>
-              <div className="text-sm font-bold text-slate-800 dark:text-foreground">{formatVolume(order.total_volume)}</div>
-            </div>
-            <div className="rounded-xl bg-blue-50/60 dark:bg-secondary/20 p-2.5 text-center border border-blue-100/40 dark:border-border">
-              <div className="text-[10px] text-blue-500 dark:text-muted-foreground font-bold uppercase tracking-wider">Za naplatu</div>
-              <div className="text-sm font-bold text-slate-800 dark:text-foreground">{formatCurrency(order.za_naplatu)}</div>
+            <div className="rounded-lg bg-blue-50/50 dark:bg-secondary/20 px-2 py-1.5 text-center">
+              <div className="text-[9px] text-blue-400 dark:text-muted-foreground font-bold uppercase tracking-wider">Za naplatu</div>
+              <div className="text-[13px] font-bold text-slate-800 dark:text-foreground">{formatCurrency(order.za_naplatu)}</div>
             </div>
           </div>
 
