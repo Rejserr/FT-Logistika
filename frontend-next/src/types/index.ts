@@ -482,6 +482,7 @@ export interface RutiranjeNalog {
   na_uvid: string | null
   kreirao__radnik_ime: string | null
   vrsta_isporuke: string | null
+  manual_paleta: number | null
 }
 
 export interface ImportRegionsResult {

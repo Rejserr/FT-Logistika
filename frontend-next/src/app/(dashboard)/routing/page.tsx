@@ -101,6 +101,13 @@ const NALOZI_COLUMNS: ColumnDef<RutiranjeNalog>[] = [
     render: (row) => row.total_volume ? `${(Number(row.total_volume) / 1e6).toFixed(3)} m³` : "—",
   },
   {
+    key: "palete_rucno",
+    header: "Palete",
+    width: "70px",
+    getValue: (row) => row.manual_paleta,
+    render: (row) => row.manual_paleta ? String(row.manual_paleta) : "—",
+  },
+  {
     key: "status",
     header: "Status",
     width: "100px",
@@ -226,19 +233,21 @@ export default function RoutingPage() {
   const checkedTotals = useMemo(() => {
     let totalWeight = 0
     let totalVolume = 0
+    let totalManualPaleta = 0
     let count = 0
     cekaRutuNalozi.forEach((order) => {
       if (selectedRows.has(order.nalog_prodaje_uid)) {
         count++
         if (order.total_weight) totalWeight += Number(order.total_weight)
         if (order.total_volume) totalVolume += Number(order.total_volume)
+        if (order.manual_paleta) totalManualPaleta += Number(order.manual_paleta)
       }
     })
     const volumeM3 = totalVolume / 1_000_000
     const paletaByVolume = paletaConfig.volumenM3 > 0 ? volumeM3 / paletaConfig.volumenM3 : 0
     const paletaByWeight = paletaConfig.maxTezina > 0 ? totalWeight / paletaConfig.maxTezina : 0
     const paletaCount = Math.ceil(Math.max(paletaByVolume, paletaByWeight))
-    return { totalWeight, totalVolume, count, paletaCount }
+    return { totalWeight, totalVolume, totalManualPaleta, count, paletaCount }
   }, [cekaRutuNalozi, selectedRows, paletaConfig])
 
   // Geocode preview
@@ -417,6 +426,13 @@ export default function RoutingPage() {
             Kreiraj rutu ({checkedTotals.count})
           </Button>
 
+          {!selectedVehicle && checkedTotals.count > 0 && (
+            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200 flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              Odaberite vozilo da biste kreirali rutu
+            </span>
+          )}
+
           {selectedRows.size > 0 && (
             <Button
               variant="outline"
@@ -428,10 +444,6 @@ export default function RoutingPage() {
               Natrag
             </Button>
           )}
-
-          <Button variant="ghost" size="sm" onClick={() => router.push("/orders")}>
-            Natrag
-          </Button>
         </div>
       </div>
 
@@ -460,6 +472,13 @@ export default function RoutingPage() {
             <span className="font-medium">{checkedTotals.paletaCount}</span>
             <span className="text-muted-foreground">paleta (procjena)</span>
           </div>
+          {checkedTotals.totalManualPaleta > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Package className="h-4 w-4 text-primary" />
+              <span className="font-medium">{checkedTotals.totalManualPaleta}</span>
+              <span className="text-muted-foreground">paleta (ručno)</span>
+            </div>
+          )}
           {isGeocoding && (
             <div className="ml-auto flex items-center gap-1.5 text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -482,16 +501,16 @@ export default function RoutingPage() {
 
         {/* Panel 1: Vozila */}
         <div
-          className="flex flex-col border-r border-border/50 bg-card/30"
+          className="flex flex-col border-r border-border/50 min-h-0"
           style={{ width: vehiclesWidth, minWidth: 160, maxWidth: 400 }}
         >
-          <div className="flex items-center gap-2 border-b border-border/50 px-3 py-2.5">
+          <div className="flex items-center gap-2 border-b border-border/50 bg-card/30 px-3 py-2.5 shrink-0">
             <Truck className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Vozila
             </span>
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="p-2">
               {vehiclesByType.map((group, groupIdx) => (
                 <div key={`vtype-${group.tip?.id ?? "none"}-${groupIdx}`} className="mb-3">

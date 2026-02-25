@@ -94,6 +94,7 @@ class NalogHeaderRutiranje(Base):
     ruta_id = Column(Integer, nullable=True)
     status_rutiranja = Column(String(30), nullable=False, server_default="CEKA_RUTU")
     prebaceno_at = Column(DateTime, server_default=func.getutcdate())
+    manual_paleta = Column(Integer, nullable=True)
 
 
 class NalogDetailRutiranje(Base):

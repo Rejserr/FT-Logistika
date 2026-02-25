@@ -120,8 +120,9 @@ _HEADER_COPY_COLS = [
     "tip_racuna_uid", "tip_racuna", "tip_racuna_b2b",
     "predmet_uid", "predmet", "predmet_b2b",
     "za_naplatu", "zki", "jir",
-    "regija_id", "vozilo_tip", "total_weight", "total_volume",
-    "synced_at", "created_at", "updated_at",
+  "regija_id", "vozilo_tip", "total_weight", "total_volume",
+  "manual_paleta",
+  "synced_at", "created_at", "updated_at",
 ]
 
 _DETAIL_COPY_COLS = [

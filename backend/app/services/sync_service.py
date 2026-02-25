@@ -29,8 +29,10 @@ logger = logging.getLogger(__name__)
 def _log(msg: str) -> None:
     """Print + flush za terminalni ispis u sync background tasku."""
     import sys
-    print(msg, flush=True)
-    sys.stderr.write(msg + "\n")
+    # ASCII safe - uklanja specijalne unicode znakove koji pucaju na Windowsu
+    safe_msg = msg.encode('ascii', 'replace').decode('ascii')
+    print(safe_msg, flush=True)
+    sys.stderr.write(safe_msg + "\n")
     sys.stderr.flush()
 
 
@@ -1105,7 +1107,7 @@ async def sync_orders_by_raspored(
     try:
         allowed_vrste = _get_allowed_vrste_isporuke(db)
         sync_warehouses = _get_sync_warehouse_codes(db)
-        _log(f"[SYNC-RASPORED] Tražim naloge s rasporedom={target_str}, ERP raspon: {datum_od} → {datum_do}")
+        _log(f"[SYNC-RASPORED] Tražim naloge s rasporedom={target_str}, ERP raspon: {datum_od} -> {datum_do}")
         _log(f"[SYNC-RASPORED] Dozvoljene vrste isporuke: {allowed_vrste}")
         _log(f"[SYNC-RASPORED] Skladišta sa sync: {sync_warehouses or '(sva)'}")
 
@@ -1121,6 +1123,9 @@ async def sync_orders_by_raspored(
         errors = 0
         total_headers = len(headers)
 
+        # Track partneri dodani u ovoj sesiji da izbjegnemo duplikate
+        _partners_added_in_session: set[str] = set()
+
         for idx, header_data in enumerate(headers, 1):
             nalog_prodaje_uid = _safe_str(header_data.get("nalog_prodaje_uid"))
             if not nalog_prodaje_uid:
@@ -1128,26 +1133,34 @@ async def sync_orders_by_raspored(
                 continue
 
             # Filter: raspored mora odgovarati traženom datumu
+            # DEBUG: LOGIRA sve datume
             raspored_raw = header_data.get("raspored")
             if not raspored_raw:
                 skipped_raspored += 1
                 skipped += 1
+                if skipped_raspored <= 3:
+                    _log(f"[DEBUG] SKIP {nalog_prodaje_uid[:8]} — nema rasporeda: {raspored_raw!r}")
                 continue
             try:
                 if isinstance(raspored_raw, str):
-                    rasp_dt = datetime.strptime(raspored_raw[:10], "%Y-%m-%d").date()
+                    # ERP koristi DD.MM.YYYY
+                    rasp_dt = datetime.strptime(raspored_raw[:10], "%d.%m.%Y").date()
                 elif isinstance(raspored_raw, datetime):
                     rasp_dt = raspored_raw.date()
                 elif isinstance(raspored_raw, date):
                     rasp_dt = raspored_raw
                 else:
                     rasp_dt = None
-            except Exception:
+            except Exception as e:
                 rasp_dt = None
+                if skipped_raspored <= 3:
+                    _log(f"[DEBUG] SKIP {nalog_prodaje_uid[:8]} — parsiranje greška: {e} ({raspored_raw!r})")
 
             if rasp_dt != raspored_datum:
                 skipped_raspored += 1
                 skipped += 1
+                if skipped_raspored <= 3:
+                    _log(f"[DEBUG] SKIP {nalog_prodaje_uid[:8]} — datum neodgovarajući: {rasp_dt} != {raspored_datum}")
                 continue
 
             # Filter: skladište
@@ -1214,16 +1227,21 @@ async def sync_orders_by_raspored(
                             partner_uid = partner_dict["partner_uid"]
                         partner_postanski_broj = partner_dict.get("postanski_broj")
                         if partner_uid:
+                            # Provjeri u bazi + u sesiji + tracking
                             existing_partner = db.get(Partner, partner_uid)
                             if existing_partner:
                                 for k, v in partner_dict.items():
                                     if v is not None:
                                         setattr(existing_partner, k, v)
-                            else:
+                            elif partner_uid not in _partners_added_in_session:
                                 db.add(Partner(**partner_dict))
+                                _partners_added_in_session.add(partner_uid)
 
-                if partner_uid and not db.get(Partner, partner_uid):
-                    db.add(Partner(partner_uid=partner_uid, partner=partner_sifra))
+                if partner_uid and partner_uid not in _partners_added_in_session:
+                    existing_partner = db.get(Partner, partner_uid)
+                    if not existing_partner:
+                        db.add(Partner(partner_uid=partner_uid, partner=partner_sifra))
+                        _partners_added_in_session.add(partner_uid)
 
                 db.commit()
 
@@ -1263,6 +1281,9 @@ async def sync_orders_by_raspored(
                         existing_det = db.get(NalogDetail, stavka_uid)
                         if not existing_det:
                             db.add(NalogDetail(**detail_dict))
+                    db.commit()
+                    # Izračunaj total_weight i total_volume iz stavki
+                    _recalculate_totals_for_nalog(db, nalog_prodaje_uid)
                     db.commit()
 
                 created += 1
