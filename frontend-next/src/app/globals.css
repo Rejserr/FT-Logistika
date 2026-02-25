@@ -59,7 +59,7 @@
   --border: rgba(255, 255, 255, 0.5);
   --input: rgba(226, 232, 240, 0.5);
   --ring: rgba(255, 126, 103, 0.4);
-  --sidebar: rgba(230, 235, 245, 0.65);
+  --sidebar: rgba(224, 231, 255, 0.55);
   --sidebar-foreground: #475569;
   --sidebar-primary: #FF7E67;
   --sidebar-primary-foreground: #FFFFFF;
@@ -107,29 +107,13 @@
   body {
     color: var(--foreground);
     min-height: 100vh;
-    position: relative;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background: url("/bg-logistics.jpg") center / cover no-repeat;
-  }
-
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    backdrop-filter: blur(70px) saturate(130%) brightness(1.1);
-    -webkit-backdrop-filter: blur(70px) saturate(130%) brightness(1.1);
     background:
-      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(192, 210, 245, 0.3) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 50% at 85% 15%, rgba(196, 181, 253, 0.2) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 50% at 50% 80%, rgba(254, 202, 202, 0.15) 0%, transparent 50%),
-      rgba(240, 243, 250, 0.65);
+      radial-gradient(ellipse 60% 50% at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 45%),
+      radial-gradient(ellipse 40% 30% at 80% 50%, rgba(244, 114, 182, 0.06) 0%, transparent 40%),
+      radial-gradient(ellipse 50% 40% at 10% 90%, rgba(56, 189, 248, 0.07) 0%, transparent 45%),
+      linear-gradient(145deg, #E0E7FF 0%, #EDE9FE 20%, #F0F4FF 45%, #F5F3FF 65%, #EEF2FF 100%);
+    background-attachment: fixed;
   }
 
   .dark body {
