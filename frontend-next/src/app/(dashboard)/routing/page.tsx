@@ -43,6 +43,9 @@ import {
   Weight,
   Box,
   GripVertical,
+  Map,
+  PanelLeftClose,
+  PanelRightClose,
 } from "lucide-react"
 
 const ALGORITHM_OPTIONS: { value: string; label: string }[] = [
@@ -148,6 +151,30 @@ export default function RoutingPage() {
   const [mapRatio, setMapRatio] = useServerPref("routing-map-ratio", 35)
   const draggingRef = useRef<"vehicles" | "map" | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Collapsible panels
+  const [vehiclesCollapsed, setVehiclesCollapsed] = useState(false)
+  const [mapCollapsed, setMapCollapsed] = useState(false)
+  const lastVehiclesWidthRef = useRef(vehiclesWidth)
+  const lastMapRatioRef = useRef(mapRatio)
+
+  const toggleVehicles = useCallback(() => {
+    if (vehiclesCollapsed) {
+      setVehiclesWidth(lastVehiclesWidthRef.current)
+    } else {
+      lastVehiclesWidthRef.current = vehiclesWidth
+    }
+    setVehiclesCollapsed((prev) => !prev)
+  }, [vehiclesCollapsed, vehiclesWidth, setVehiclesWidth])
+
+  const toggleMap = useCallback(() => {
+    if (mapCollapsed) {
+      setMapRatio(lastMapRatioRef.current)
+    } else {
+      lastMapRatioRef.current = mapRatio
+    }
+    setMapCollapsed((prev) => !prev)
+  }, [mapCollapsed, mapRatio, setMapRatio])
 
   // Data queries
   const { data: rutiranjeNalozi = [], isLoading: loadingNalozi } = useQuery({
@@ -282,12 +309,16 @@ export default function RoutingPage() {
       const rect = containerRef.current.getBoundingClientRect()
       const x = e.clientX - rect.left
       if (draggingRef.current === "vehicles") {
-        setVehiclesWidth(Math.max(160, Math.min(400, x)))
+        const newW = Math.max(160, Math.min(400, x))
+        setVehiclesWidth(newW)
+        lastVehiclesWidthRef.current = newW
       } else {
-        const remaining = rect.width - vehiclesWidth - 16
-        const ordersW = x - vehiclesWidth - 8
+        const currentVW = vehiclesCollapsed ? 48 : vehiclesWidth
+        const remaining = rect.width - currentVW - 16
+        const ordersW = x - currentVW - 8
         const mapPct = Math.max(20, Math.min(70, 100 - (ordersW / remaining) * 100))
         setMapRatio(mapPct)
+        lastMapRatioRef.current = mapPct
       }
     }
     const handleMouseUp = () => {
@@ -303,7 +334,7 @@ export default function RoutingPage() {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseup", handleMouseUp)
     }
-  }, [vehiclesWidth, mapRatio])
+  }, [vehiclesWidth, mapRatio, vehiclesCollapsed])
 
   const handleResizeMouseDown = useCallback((which: "vehicles" | "map") => {
     draggingRef.current = which
@@ -364,24 +395,24 @@ export default function RoutingPage() {
     <PermissionGuard permission="routes.create">
       <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-card/50 px-4 py-3 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-border/50 bg-white/60 dark:bg-card/50 px-4 py-3 shrink-0">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-          <Separator orientation="vertical" className="h-6" />
-          <h1 className="text-lg font-semibold">Kreiranje rute</h1>
-          <span className="text-sm text-muted-foreground">
+          <SidebarTrigger className="-ml-1 text-slate-300 hover:text-slate-500 dark:text-muted-foreground dark:hover:text-foreground" />
+          <Separator orientation="vertical" className="h-6 bg-slate-200 dark:bg-border" />
+          <h1 className="text-lg font-bold text-slate-800 dark:text-foreground">Kreiranje rute</h1>
+          <span className="text-sm text-slate-400 dark:text-muted-foreground">
             {cekaRutuNalozi.length} naloga čeka rutu
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground">Provider:</span>
+            <span className="text-xs text-slate-400 dark:text-muted-foreground">Provider:</span>
             <Select
               value={providerInfo?.provider || "nominatim"}
               onValueChange={(v) => switchProviderMutation.mutate(v)}
             >
-              <SelectTrigger className="h-8 w-[200px] text-xs bg-secondary/50">
+              <SelectTrigger className="h-8 w-[200px] text-xs bg-white border-slate-100 dark:bg-secondary/50 dark:border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -395,12 +426,12 @@ export default function RoutingPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground">Algoritam:</span>
+            <span className="text-xs text-slate-400 dark:text-muted-foreground">Algoritam:</span>
             <Select
               value={selectedAlgorithm}
               onValueChange={(v) => setSelectedAlgorithm(v as AlgorithmType)}
             >
-              <SelectTrigger className="h-8 w-[170px] text-xs bg-secondary/50">
+              <SelectTrigger className="h-8 w-[170px] text-xs bg-white border-slate-100 dark:bg-secondary/50 dark:border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -427,7 +458,7 @@ export default function RoutingPage() {
           </Button>
 
           {!selectedVehicle && checkedTotals.count > 0 && (
-            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200 flex items-center gap-1">
+            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-xl border border-amber-200 flex items-center gap-1">
               <MapPin className="h-3 w-3" />
               Odaberite vozilo da biste kreirali rutu
             </span>
@@ -449,11 +480,11 @@ export default function RoutingPage() {
 
       {/* Summary strip */}
       {checkedTotals.count > 0 && (
-        <div className="flex items-center gap-4 border-b border-border/50 bg-primary/5 px-4 py-2 text-sm">
+        <div className="flex items-center gap-4 border-b border-slate-100 dark:border-border/50 bg-primary/5 px-4 py-2 text-sm shrink-0">
           <div className="flex items-center gap-1.5">
             <Package className="h-4 w-4 text-primary" />
             <span className="font-medium">{checkedTotals.count}</span>
-            <span className="text-muted-foreground">označenih</span>
+            <span className="text-slate-400 dark:text-muted-foreground">označenih</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Weight className="h-4 w-4 text-primary" />
@@ -470,26 +501,26 @@ export default function RoutingPage() {
           <div className="flex items-center gap-1.5">
             <Truck className="h-4 w-4 text-primary" />
             <span className="font-medium">{checkedTotals.paletaCount}</span>
-            <span className="text-muted-foreground">paleta (procjena)</span>
+            <span className="text-slate-400 dark:text-muted-foreground">paleta (procjena)</span>
           </div>
           {checkedTotals.totalManualPaleta > 0 && (
             <div className="flex items-center gap-1.5">
               <Package className="h-4 w-4 text-primary" />
               <span className="font-medium">{checkedTotals.totalManualPaleta}</span>
-              <span className="text-muted-foreground">paleta (ručno)</span>
+              <span className="text-slate-400 dark:text-muted-foreground">paleta (ručno)</span>
             </div>
           )}
           {isGeocoding && (
-            <div className="ml-auto flex items-center gap-1.5 text-muted-foreground">
+            <div className="ml-auto flex items-center gap-1.5 text-slate-400 dark:text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span className="text-xs">Geocodiranje...</span>
             </div>
           )}
           {selectedVehicle && (
             <div className="ml-auto flex items-center gap-1.5">
-              <Truck className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
-                Vozilo: <span className="font-medium text-foreground">{selectedVehicle.oznaka || selectedVehicle.naziv}</span>
+              <Truck className="h-3.5 w-3.5 text-slate-400 dark:text-muted-foreground" />
+              <span className="text-xs text-slate-400 dark:text-muted-foreground">
+                Vozilo: <span className="font-medium text-slate-700 dark:text-foreground">{selectedVehicle.oznaka || selectedVehicle.naziv}</span>
               </span>
             </div>
           )}
@@ -501,78 +532,94 @@ export default function RoutingPage() {
 
         {/* Panel 1: Vozila */}
         <div
-          className="flex flex-col border-r border-border/50 min-h-0"
-          style={{ width: vehiclesWidth, minWidth: 160, maxWidth: 400 }}
+          className="flex flex-col border-r border-slate-100 dark:border-border/50 min-h-0 transition-[width] duration-300 ease-in-out"
+          style={{
+            width: vehiclesCollapsed ? 48 : vehiclesWidth,
+            minWidth: vehiclesCollapsed ? 48 : 160,
+            maxWidth: vehiclesCollapsed ? 48 : 400,
+          }}
         >
-          <div className="flex items-center gap-2 border-b border-border/50 bg-card/30 px-3 py-2.5 shrink-0">
-            <Truck className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Vozila
-            </span>
-          </div>
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="p-2">
-              {vehiclesByType.map((group, groupIdx) => (
-                <div key={`vtype-${group.tip?.id ?? "none"}-${groupIdx}`} className="mb-3">
-                  <div className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                    {group.tip?.naziv || "Ostala"}
-                  </div>
-                  {group.vehicles.map((vehicle: Vozilo) => {
-                    const isSelected = selectedVehicle?.id === vehicle.id
-                    return (
-                      <button
-                        key={vehicle.id}
-                        onClick={() => setSelectedVehicle(isSelected ? null : vehicle)}
-                        className={`mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                          isSelected
-                            ? "bg-primary/10 text-primary ring-1 ring-primary/30"
-                            : "hover:bg-accent text-foreground"
-                        }`}
-                      >
-                        <div
-                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+          <button
+            onClick={toggleVehicles}
+            className="flex items-center gap-2 border-b border-slate-100 dark:border-border/50 bg-white/40 dark:bg-card/30 px-3 py-2.5 shrink-0 hover:bg-white/80 dark:hover:bg-card/50 transition-colors cursor-pointer w-full text-left"
+          >
+            <Truck className="h-4 w-4 text-slate-400 dark:text-muted-foreground shrink-0" />
+            {!vehiclesCollapsed && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex-1">
+                Vozila
+              </span>
+            )}
+            {!vehiclesCollapsed && (
+              <PanelLeftClose className="h-3.5 w-3.5 text-slate-300 dark:text-muted-foreground/50" />
+            )}
+          </button>
+          {!vehiclesCollapsed && (
+            <ScrollArea className="flex-1 min-h-0">
+              <div className="p-2">
+                {vehiclesByType.map((group, groupIdx) => (
+                  <div key={`vtype-${group.tip?.id ?? "none"}-${groupIdx}`} className="mb-3">
+                    <div className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-slate-300 dark:text-muted-foreground/70">
+                      {group.tip?.naziv || "Ostala"}
+                    </div>
+                    {group.vehicles.map((vehicle: Vozilo) => {
+                      const isSelected = selectedVehicle?.id === vehicle.id
+                      return (
+                        <button
+                          key={vehicle.id}
+                          onClick={() => setSelectedVehicle(isSelected ? null : vehicle)}
+                          className={`mb-0.5 flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-all ${
                             isSelected
-                              ? "border-primary bg-primary"
-                              : "border-muted-foreground/40"
+                              ? "bg-primary/10 text-primary ring-1 ring-primary/20 shadow-[0_1px_4px_rgba(255,126,103,0.1)]"
+                              : "hover:bg-white/70 dark:hover:bg-accent text-slate-600 dark:text-foreground"
                           }`}
                         >
-                          {isSelected && (
-                            <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-sm font-medium">
-                            {vehicle.oznaka || vehicle.naziv || `#${vehicle.id}`}
+                          <div
+                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                              isSelected
+                                ? "border-primary bg-primary"
+                                : "border-slate-300 dark:border-muted-foreground/40"
+                            }`}
+                          >
+                            {isSelected && (
+                              <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+                            )}
                           </div>
-                          <div className="truncate text-[11px] text-muted-foreground">
-                            {[
-                              vehicle.nosivost_kg && `${vehicle.nosivost_kg}kg`,
-                              vehicle.volumen_m3 && `${vehicle.volumen_m3}m³`,
-                              vehicle.paleta && `${vehicle.paleta} pal`,
-                            ]
-                              .filter(Boolean)
-                              .join(" / ")}
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium">
+                              {vehicle.oznaka || vehicle.naziv || `#${vehicle.id}`}
+                            </div>
+                            <div className="truncate text-[11px] text-slate-400 dark:text-muted-foreground">
+                              {[
+                                vehicle.nosivost_kg && `${vehicle.nosivost_kg}kg`,
+                                vehicle.volumen_m3 && `${vehicle.volumen_m3}m³`,
+                                vehicle.paleta && `${vehicle.paleta} pal`,
+                              ]
+                                .filter(Boolean)
+                                .join(" / ")}
+                            </div>
                           </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
         </div>
 
         {/* Resize handle 1 */}
-        <div
-          className="flex w-2 cursor-col-resize items-center justify-center hover:bg-primary/10 active:bg-primary/20 transition-colors"
-          onMouseDown={() => handleResizeMouseDown("vehicles")}
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground/40" />
-        </div>
+        {!vehiclesCollapsed && (
+          <div
+            className="flex w-2 cursor-col-resize items-center justify-center hover:bg-primary/10 active:bg-primary/20 transition-colors"
+            onMouseDown={() => handleResizeMouseDown("vehicles")}
+          >
+            <GripVertical className="h-4 w-4 text-slate-200 dark:text-muted-foreground/40" />
+          </div>
+        )}
 
-        {/* Panel 2: Nalozi */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Panel 2: Nalozi (full-height, fixed header/footer) */}
+        <div className="flex flex-1 flex-col overflow-hidden min-w-0">
           <DataTable
             columns={NALOZI_COLUMNS}
             data={cekaRutuNalozi}
@@ -585,23 +632,48 @@ export default function RoutingPage() {
             selectedRows={selectedRows}
             onSelectRows={setSelectedRows}
             emptyMessage="Nema naloga koji čekaju rutu."
+            fillHeight
           />
         </div>
 
         {/* Resize handle 2 */}
-        <div
-          className="flex w-2 cursor-col-resize items-center justify-center hover:bg-primary/10 active:bg-primary/20 transition-colors"
-          onMouseDown={() => handleResizeMouseDown("map")}
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground/40" />
-        </div>
+        {!mapCollapsed && (
+          <div
+            className="flex w-2 cursor-col-resize items-center justify-center hover:bg-primary/10 active:bg-primary/20 transition-colors"
+            onMouseDown={() => handleResizeMouseDown("map")}
+          >
+            <GripVertical className="h-4 w-4 text-slate-200 dark:text-muted-foreground/40" />
+          </div>
+        )}
 
         {/* Panel 3: Mapa */}
         <div
-          className="flex flex-col overflow-hidden border-l border-border/50"
-          style={{ width: `${mapRatio}%` }}
+          className="flex flex-col overflow-hidden border-l border-slate-100 dark:border-border/50 transition-[width] duration-300 ease-in-out"
+          style={{
+            width: mapCollapsed ? 48 : `${mapRatio}%`,
+            minWidth: mapCollapsed ? 48 : undefined,
+            maxWidth: mapCollapsed ? 48 : undefined,
+          }}
         >
-          <MapView />
+          <button
+            onClick={toggleMap}
+            className="flex items-center gap-2 border-b border-slate-100 dark:border-border/50 bg-white/40 dark:bg-card/30 px-3 py-2.5 shrink-0 hover:bg-white/80 dark:hover:bg-card/50 transition-colors cursor-pointer w-full text-left"
+          >
+            <Map className="h-4 w-4 text-slate-400 dark:text-muted-foreground shrink-0" />
+            {!mapCollapsed && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex-1">
+                Mapa
+              </span>
+            )}
+            {!mapCollapsed && (
+              <PanelRightClose className="h-3.5 w-3.5 text-slate-300 dark:text-muted-foreground/50" />
+            )}
+          </button>
+          {!mapCollapsed && (
+            <div className="flex-1 min-h-0">
+              <MapView />
+            </div>
+          )}
         </div>
       </div>
 
@@ -618,23 +690,23 @@ export default function RoutingPage() {
                 type="date"
                 value={rasporedDate}
                 onChange={(e) => setRasporedDate(e.target.value)}
-                className="bg-secondary/50"
+                className="bg-white border-slate-100 dark:bg-secondary/50 dark:border-border"
               />
             </div>
             <div className="space-y-2">
               <Label>Vozilo</Label>
-              <div className="rounded-lg bg-secondary/50 px-3 py-2 text-sm">
-                <Truck className="mr-2 inline h-4 w-4 text-muted-foreground" />
+              <div className="rounded-xl bg-slate-50 dark:bg-secondary/50 px-3 py-2 text-sm">
+                <Truck className="mr-2 inline h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                 {selectedVehicle?.oznaka || selectedVehicle?.naziv || "—"}
                 {selectedVehicle?.nosivost_kg && (
-                  <span className="ml-1 text-muted-foreground">({selectedVehicle.nosivost_kg} kg)</span>
+                  <span className="ml-1 text-slate-400 dark:text-muted-foreground">({selectedVehicle.nosivost_kg} kg)</span>
                 )}
               </div>
             </div>
             <div className="space-y-2">
               <Label>Vozač (opcionalno)</Label>
               <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
-                <SelectTrigger className="bg-secondary/50">
+                <SelectTrigger className="bg-white border-slate-100 dark:bg-secondary/50 dark:border-border">
                   <SelectValue placeholder="— Bez vozača —" />
                 </SelectTrigger>
                 <SelectContent>
@@ -652,7 +724,7 @@ export default function RoutingPage() {
                 value={selectedAlgorithm}
                 onValueChange={(v) => setSelectedAlgorithm(v as AlgorithmType)}
               >
-                <SelectTrigger className="bg-secondary/50">
+                <SelectTrigger className="bg-white border-slate-100 dark:bg-secondary/50 dark:border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -664,7 +736,7 @@ export default function RoutingPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-3">
               <p className="text-sm">
                 <span className="font-medium">{checkedTotals.count}</span> naloga &middot;{" "}
                 <span className="font-medium">{checkedTotals.totalWeight.toFixed(1)} kg</span> &middot;{" "}

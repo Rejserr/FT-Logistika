@@ -265,6 +265,51 @@
     letter-spacing: 0.01em !important;
   }
 
+  /* ─── Glossy translucent scrollbar ─── */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.4);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.3);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.5);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+  .dark * {
+    scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
+  }
+
   /* ─── .rounded-xl.border generic panels - only glass in dark ─── */
   .dark .rounded-xl.border {
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
