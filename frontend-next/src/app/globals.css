@@ -253,6 +253,29 @@
     border-spacing: 0 10px !important;
   }
 
+  /* ─── Criteria highlight for orders with flagged articles ─── */
+  tr.criteria-highlight,
+  [data-slot="table-row"].criteria-highlight {
+    background: rgba(255, 228, 230, 0.5) !important;
+    border-left: 4px solid #FB7185 !important;
+    box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.15) !important;
+  }
+  tr.criteria-highlight:hover,
+  [data-slot="table-row"].criteria-highlight:hover {
+    background: rgba(255, 228, 230, 0.7) !important;
+  }
+
+  .dark tr.criteria-highlight,
+  .dark [data-slot="table-row"].criteria-highlight {
+    background: rgba(159, 18, 57, 0.15) !important;
+    border-left: 4px solid #F43F5E !important;
+    box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.1) !important;
+  }
+  .dark tr.criteria-highlight:hover,
+  .dark [data-slot="table-row"].criteria-highlight:hover {
+    background: rgba(159, 18, 57, 0.25) !important;
+  }
+
   /* ─── Badge pill shape ─── */
   [data-slot="badge"] {
     border-radius: 9999px !important;
