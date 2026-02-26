@@ -39,7 +39,7 @@ export default function ChangePasswordScreen() {
 
     setLoading(true);
     try {
-      await apiFetch('/auth/change-password', {
+      await apiFetch('/driver/change-password', {
         method: 'POST',
         body: JSON.stringify({ new_password: newPassword }),
       });
@@ -50,9 +50,13 @@ export default function ChangePasswordScreen() {
       let msg = 'Greška pri promjeni lozinke.';
       try {
         const parsed = JSON.parse(e.message);
-        if (parsed.detail) msg = parsed.detail;
+        if (typeof parsed.detail === 'string') {
+          msg = parsed.detail;
+        } else if (Array.isArray(parsed.detail)) {
+          msg = parsed.detail.map((d: any) => d.msg || String(d)).join('; ');
+        }
       } catch {}
-      Alert.alert('Greška', msg);
+      Alert.alert('Greška', String(msg));
     } finally {
       setLoading(false);
     }

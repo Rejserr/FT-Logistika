@@ -1,31 +1,62 @@
 /**
- * Dark theme constants for FT Driver app (matches web app palette).
- * All exports are named.
+ * Theme constants for FT Driver app.
+ * Glossy transparent modern design with light & dark support.
  */
 
-// ---- Colors ----
-export const colors = {
-  background: '#09090b', // zinc-950
-  card: '#18181b', // zinc-900
-  cardHover: '#27272a', // zinc-800
-  border: '#3f3f46', // zinc-700
-  borderSubtle: '#27272a', // zinc-800
-  text: '#fafafa', // zinc-50
-  textSecondary: '#a1a1aa', // zinc-400
-  textMuted: '#71717a', // zinc-500
-  primary: '#3b82f6', // blue-500, Electric Blue
-  primaryDark: '#2563eb', // blue-600
-  primaryLight: '#60a5fa', // blue-400
-  primaryBg: 'rgba(59, 130, 246, 0.1)',
-  success: '#22c55e', // green-500, Neon Green
-  successBg: 'rgba(34, 197, 94, 0.1)',
-  warning: '#f59e0b', // amber-500
+// ---- Light palette ----
+export const lightColors = {
+  background: '#EEF2FA',
+  card: 'rgba(255, 255, 255, 0.65)',
+  cardSolid: '#FFFFFF',
+  cardHover: 'rgba(255, 255, 255, 0.8)',
+  border: 'rgba(255, 255, 255, 0.5)',
+  borderSubtle: 'rgba(226, 232, 240, 0.4)',
+  text: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
+  primary: '#FF7E67',
+  primaryDark: '#E8634D',
+  primaryLight: '#FF9A87',
+  primaryBg: 'rgba(255, 126, 103, 0.1)',
+  success: '#10B981',
+  successBg: 'rgba(16, 185, 129, 0.1)',
+  warning: '#F59E0B',
   warningBg: 'rgba(245, 158, 11, 0.1)',
-  danger: '#ef4444', // red-500
+  danger: '#EF4444',
   dangerBg: 'rgba(239, 68, 68, 0.1)',
-  info: '#3b82f6',
+  info: '#3B82F6',
   infoBg: 'rgba(59, 130, 246, 0.1)',
+  statusBar: 'dark' as const,
 } as const;
+
+// ---- Dark palette ----
+export const darkColors = {
+  background: '#09090B',
+  card: 'rgba(24, 24, 27, 0.8)',
+  cardSolid: '#18181B',
+  cardHover: '#27272A',
+  border: 'rgba(63, 63, 70, 0.6)',
+  borderSubtle: '#27272A',
+  text: '#FAFAFA',
+  textSecondary: '#A1A1AA',
+  textMuted: '#71717A',
+  primary: '#FF7E67',
+  primaryDark: '#E8634D',
+  primaryLight: '#FF9A87',
+  primaryBg: 'rgba(255, 126, 103, 0.12)',
+  success: '#22C55E',
+  successBg: 'rgba(34, 197, 94, 0.12)',
+  warning: '#F59E0B',
+  warningBg: 'rgba(245, 158, 11, 0.12)',
+  danger: '#EF4444',
+  dangerBg: 'rgba(239, 68, 68, 0.12)',
+  info: '#3B82F6',
+  infoBg: 'rgba(59, 130, 246, 0.12)',
+  statusBar: 'light' as const,
+} as const;
+
+// Default export (dark for backward compat with existing screens)
+export const colors = darkColors;
 
 // ---- Spacing ----
 export const spacing = {
@@ -44,6 +75,7 @@ export const borderRadius = {
   md: 12,
   lg: 16,
   xl: 20,
+  xxl: 24,
 } as const;
 
 // ---- Font sizes ----
@@ -57,7 +89,7 @@ export const fontSizes = {
   xxxl: 28,
 } as const;
 
-// ---- Delivery status colors (pill/badge style) ----
+// ---- Delivery status colors ----
 export type DeliveryStatus = 'PENDING' | 'ARRIVED' | 'DELIVERED' | 'FAILED' | 'SKIPPED';
 
 export const statusColors: Record<
@@ -71,7 +103,6 @@ export const statusColors: Record<
   SKIPPED: { color: colors.textMuted, bg: colors.borderSubtle, label: 'Preskočeno' },
 };
 
-// Short labels for compact badges
 export const statusLabelsShort: Record<DeliveryStatus, string> = {
   PENDING: 'Čeka',
   ARRIVED: 'Na lokaciji',

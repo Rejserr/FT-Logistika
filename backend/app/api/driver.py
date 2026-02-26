@@ -325,6 +325,32 @@ def driver_login(
     }
 
 
+class DriverChangePasswordRequest(BaseModel):
+    new_password: str
+
+
+@router.post("/change-password")
+def driver_change_password(
+    body: DriverChangePasswordRequest,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Driver forced password change — does not require current password."""
+    from app.core.security import hash_password
+
+    if len(body.new_password) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Lozinka mora imati najmanje 5 znakova.",
+        )
+
+    user.password_hash = hash_password(body.new_password)
+    user.force_password_change = False
+    db.commit()
+    logger.info("[DRIVER] Password changed for user=%s", user.username)
+    return {"message": "Lozinka je uspješno promijenjena."}
+
+
 @router.get("/routes", response_model=list[DriverRouteOut])
 def get_driver_routes(
     user: User = Depends(get_current_active_user),

@@ -68,9 +68,13 @@ export default function LoginScreen() {
       let msg = 'Pogrešno korisničko ime ili lozinka.';
       try {
         const parsed = JSON.parse(e.message);
-        if (parsed.detail) msg = parsed.detail;
+        if (typeof parsed.detail === 'string') {
+          msg = parsed.detail;
+        } else if (Array.isArray(parsed.detail)) {
+          msg = parsed.detail.map((d: any) => d.msg || String(d)).join('; ');
+        }
       } catch {}
-      Alert.alert('Greška', msg);
+      Alert.alert('Greška', String(msg));
     } finally {
       setLoading(false);
     }
