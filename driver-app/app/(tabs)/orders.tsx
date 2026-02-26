@@ -6,13 +6,11 @@ import {
   RefreshControl,
   TouchableOpacity,
   StyleSheet,
-  Switch,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '@/services/api';
-import { setDutyStatus } from '@/services/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouteStore } from '@/stores/routeStore';
 import { OrderCard } from '@/components/OrderCard';
@@ -31,8 +29,6 @@ export default function OrdersScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const user = useAuthStore((s) => s.user);
-  const onDuty = useAuthStore((s) => s.onDuty);
-  const setOnDuty = useAuthStore((s) => s.setOnDuty);
 
   const routes = useRouteStore((s) => s.routes);
   const selectedRoute = useRouteStore((s) => s.selectedRoute);
@@ -65,15 +61,6 @@ export default function OrdersScreen() {
     setRefreshing(false);
   }, [fetchRoutes]);
 
-  const handleDutyToggle = async (value: boolean) => {
-    try {
-      await setDutyStatus(value);
-      setOnDuty(value);
-    } catch (e) {
-      console.warn('Duty toggle failed:', e);
-    }
-  };
-
   const handleSelectRoute = (route: DriverRoute) => {
     setSelectedRoute(route);
     setActiveTab('todo');
@@ -95,19 +82,6 @@ export default function OrdersScreen() {
   if (!selectedRoute && routes.length > 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.dutyBar}>
-          <View style={styles.dutyLeft}>
-            <View style={[styles.dutyDot, onDuty ? styles.dutyDotOn : styles.dutyDotOff]} />
-            <Text style={styles.dutyText}>{onDuty ? 'ON DUTY' : 'OFF DUTY'}</Text>
-          </View>
-          <Switch
-            value={onDuty}
-            onValueChange={handleDutyToggle}
-            trackColor={{ false: colors.border, true: colors.success }}
-            thumbColor={onDuty ? colors.success : colors.textMuted}
-          />
-        </View>
-
         <View style={styles.routeListHeader}>
           <Ionicons name="map-outline" size={20} color={colors.primary} />
           <Text style={styles.routeListTitle}>Odaberite rutu ({routes.length})</Text>
@@ -227,20 +201,6 @@ export default function OrdersScreen() {
 
   return (
     <View style={styles.container}>
-      {/* ON DUTY toggle */}
-      <View style={styles.dutyBar}>
-        <View style={styles.dutyLeft}>
-          <View style={[styles.dutyDot, onDuty ? styles.dutyDotOn : styles.dutyDotOff]} />
-          <Text style={styles.dutyText}>{onDuty ? 'ON DUTY' : 'OFF DUTY'}</Text>
-        </View>
-        <Switch
-          value={onDuty}
-          onValueChange={handleDutyToggle}
-          trackColor={{ false: colors.border, true: colors.success }}
-          thumbColor={onDuty ? colors.success : colors.textMuted}
-        />
-      </View>
-
       {/* Route header — back button if multiple routes */}
       {routes.length > 1 && selectedRoute && (
         <TouchableOpacity style={styles.routeBackBar} onPress={handleBackToRoutes} activeOpacity={0.7}>
@@ -341,39 +301,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  dutyBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.card,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  dutyLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  dutyDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  dutyDotOn: {
-    backgroundColor: colors.success,
-  },
-  dutyDotOff: {
-    backgroundColor: colors.textMuted,
-  },
-  dutyText: {
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: 1,
-  },
-
   // Route selection
   routeListHeader: {
     flexDirection: 'row',
