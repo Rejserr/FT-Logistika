@@ -2,15 +2,16 @@ import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export default function TabLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const colors = useColors();
 
   if (isLoading) {
     return (
-      <View style={styles.loading}>
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -26,7 +27,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: colors.cardSolid,
           borderTopWidth: 1,
           borderTopColor: colors.border,
           height: 60,
@@ -39,9 +40,10 @@ export default function TabLayout() {
         },
         headerStyle: {
           backgroundColor: colors.background,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        },
+          borderBottomWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        } as any,
         headerTintColor: colors.text,
         headerTitleStyle: {
           fontWeight: '600',
@@ -84,6 +86,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
   },
 });

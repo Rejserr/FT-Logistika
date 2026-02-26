@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { useAuthStore } from '@/stores/authStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { checkAuth, getSession } from '@/services/auth';
 import { startLocationTracking, stopLocationTracking } from '@/services/location';
 import { registerForPushNotifications } from '@/services/notifications';
-import { useSettingsStore } from '@/stores/settingsStore';
 
 export default function RootLayout() {
   const setAuthenticated = useAuthStore((s) => s.setAuthenticated);
@@ -14,6 +14,7 @@ export default function RootLayout() {
   const reset = useAuthStore((s) => s.reset);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const onDuty = useAuthStore((s) => s.onDuty);
+  const colors = useColors();
 
   useEffect(() => {
     (async () => {
@@ -42,7 +43,6 @@ export default function RootLayout() {
     })();
   }, []);
 
-  // Start/stop GPS tracking based on onDuty and auth status
   useEffect(() => {
     if (isAuthenticated && onDuty) {
       const interval = useSettingsStore.getState().locationTrackingInterval * 1000;
@@ -53,7 +53,6 @@ export default function RootLayout() {
     return () => stopLocationTracking();
   }, [isAuthenticated, onDuty]);
 
-  // Register push notifications
   useEffect(() => {
     if (isAuthenticated) {
       registerForPushNotifications();
@@ -62,7 +61,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={colors.statusBar} />
       <Stack
         screenOptions={{
           headerShown: false,
