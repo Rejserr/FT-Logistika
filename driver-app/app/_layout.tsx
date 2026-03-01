@@ -31,15 +31,9 @@ export default function RootLayout() {
               session.vozilo_id ?? null,
               null,
             );
-          } else {
-            reset();
-          }
-        } catch {
-          reset();
-        }
-      } else {
-        reset();
-      }
+          } else { reset(); }
+        } catch { reset(); }
+      } else { reset(); }
     })();
   }, []);
 
@@ -47,17 +41,11 @@ export default function RootLayout() {
     if (isAuthenticated && onDuty) {
       const interval = useSettingsStore.getState().locationTrackingInterval * 1000;
       startLocationTracking(interval);
-    } else {
-      stopLocationTracking();
-    }
+    } else { stopLocationTracking(); }
     return () => stopLocationTracking();
   }, [isAuthenticated, onDuty]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      registerForPushNotifications();
-    }
-  }, [isAuthenticated]);
+  useEffect(() => { if (isAuthenticated) registerForPushNotifications(); }, [isAuthenticated]);
 
   return (
     <>
@@ -69,7 +57,13 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="login" />
+        <Stack.Screen name="change-password" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="qr-scan" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
+        <Stack.Screen
+          name="document-view"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
         <Stack.Screen
           name="order/[id]"
           options={{
@@ -78,7 +72,6 @@ export default function RootLayout() {
             headerStyle: { backgroundColor: colors.background },
             headerTintColor: colors.text,
             headerShadowVisible: false,
-            contentStyle: { backgroundColor: colors.background },
           }}
         />
         <Stack.Screen
@@ -89,7 +82,6 @@ export default function RootLayout() {
             headerStyle: { backgroundColor: colors.background },
             headerTintColor: colors.text,
             headerShadowVisible: false,
-            contentStyle: { backgroundColor: colors.background },
           }}
         />
       </Stack>

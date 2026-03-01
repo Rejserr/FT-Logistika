@@ -18,6 +18,7 @@ from app.api.audit import router as audit_router
 from app.api.driver import router as driver_router
 from app.api.pod import router as pod_router
 from app.api.user_preferences import router as user_preferences_router
+from app.api.qr_documents import router as qr_router
 from app.core.deps import get_current_active_user
 
 api_router = APIRouter()
@@ -44,3 +45,4 @@ api_router.include_router(audit_router, tags=["audit"], dependencies=_auth)
 api_router.include_router(pod_router, tags=["pod"], dependencies=_auth)
 api_router.include_router(user_preferences_router, tags=["user-preferences"], dependencies=_auth)
 api_router.include_router(driver_router, tags=["driver"])
+api_router.include_router(qr_router, tags=["qr"], dependencies=_auth)

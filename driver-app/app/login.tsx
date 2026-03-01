@@ -31,7 +31,7 @@ export default function LoginScreen() {
       } else if (data.summary && data.summary.route_count > 0) {
         setSummary(data.summary); setShowSummary(true);
       } else {
-        router.replace('/(tabs)/orders');
+        router.replace('/(tabs)/home');
       }
     } catch (e: any) {
       let msg = 'Pogrešno korisničko ime ili lozinka.';

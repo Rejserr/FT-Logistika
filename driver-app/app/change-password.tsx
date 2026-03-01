@@ -21,7 +21,7 @@ export default function ChangePasswordScreen() {
     setLoading(true);
     try {
       await apiFetch('/driver/change-password', { method: 'POST', body: JSON.stringify({ new_password: newPassword }) });
-      Alert.alert('Uspjeh', 'Lozinka je uspješno promijenjena.', [{ text: 'OK', onPress: () => router.replace('/(tabs)/orders') }]);
+      Alert.alert('Uspjeh', 'Lozinka je uspješno promijenjena.', [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]);
     } catch (e: any) {
       let msg = 'Greška pri promjeni lozinke.';
       try {

@@ -11,6 +11,7 @@ from app.models.user_models import User, Role, UserRole, AuditLog, Permission, R
 from app.models.driver_models import DriverSession, DeliveryProof, DriverLocation
 from app.models.sync_models import SyncLog, GeocodingCache, DistanceMatrixCache
 from app.models.mantis_models import MantisSSCC
+from app.models.erp_log_models import ErpLog
 
 __all__ = [
     "Partner",
@@ -52,4 +53,5 @@ __all__ = [
     "DriverSession",
     "DeliveryProof",
     "DriverLocation",
+    "ErpLog",
 ]
